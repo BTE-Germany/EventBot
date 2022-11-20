@@ -1,0 +1,34 @@
+{
+  "name": "eventbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "/build/src/index.js",
+  "scripts": {
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm.cmd run compile",
+    "pretest": "npm.cmd run compile",
+    "posttest": "npm.cmd run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BTE-Germany/EventBot.git"
+  },
+  "author": "Michael \"Mischa\" Reimchen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BTE-Germany/EventBot/issues"
+  },
+  "homepage": "https://github.com/BTE-Germany/EventBot#readme",
+  "devDependencies": {
+    "@types/node": "^18.11.9",
+    "gts": "^3.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "discord.js": "^14.6.0"
+  }
+}
