@@ -1,8 +1,6 @@
-#yarn
-yarn.lock
-
-# Dependency directories
-node_modules/
-
-# IDE
-.idea/
+node_modules
+# Keep environment variables out of version control
+.env
+.idea
+package-lock.json
+generated
