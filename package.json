@@ -1,5 +1,18 @@
 {
+  "name": "my-prisma-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "run": "deno run -A --unstable npm:prisma db push && deno run -A mod.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "typescript": "^4.9.3"
+    "prisma": "^4.6.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.6.1"
   }
 }

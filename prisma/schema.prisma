@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["deno"]
+  output = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Judge {
+  id      BigInt     @id @db.BigInt
+  active  Boolean @default(true)
+}
+
+model User {
+  id           BigInt     @id @db.BigInt
+  banned       Boolean @default(false)
+  minecraft_id String
+  points       Int     @default(0)
+}
+
+model Build {
+  id       Int    @id @default(autoincrement())
+  message  BigInt? @db.BigInt
+  judge_msg BigInt? @db.BigInt
+  location String
+  A        Int?
+  B        Int?
+  C        Int?
+  images   String[]
+  builder_id  BigInt @db.BigInt
+  judges   String[]
+}
