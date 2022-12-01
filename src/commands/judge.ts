@@ -150,7 +150,7 @@ createCommand({
               id: build.builder_id,
             },
             data: {
-              points: user?.points + (build.A + build.B) / 2,
+              points: user?.points + ((build.A + interaction?.data.options[1].value) / 2) + ((build.B + interaction?.data.options[2].value) / 2),
             },
           });
           await Bot.helpers.sendInteractionResponse(
@@ -165,14 +165,14 @@ createCommand({
           );
           const User = await Bot.helpers.getUser(build.builder_id);
           await Bot.helpers.editMessage(
+              configs.submission_channel,
             build.message.toString(),
-            configs.submission_channel,
             {
               content: " ",
               embeds: [
                 {
                   title: `#${build.id.toString()}`,
-                  description: `Koordinaten: ${obj.location}`,
+                  description: `Koordinaten: ${build.location}`,
                   url: "https://bte-germany.de",
                   author: {
                     name: `${User.username}#${User.discriminator}`,
@@ -215,14 +215,14 @@ createCommand({
             }
           );
           await Bot.helpers.editMessage(
+              configs.judge_channel,
             build.judge_msg.toString(),
-            configs.judge_channel,
             {
               content: " ",
               embeds: [
                 {
                   title: `#${build.id.toString()}`,
-                  description: `Koordinaten: ${obj.location}`,
+                  description: `Koordinaten: ${build.location}`,
                   url: "https://bte-germany.de",
                   author: {
                     name: `${User.username}#${User.discriminator}`,
