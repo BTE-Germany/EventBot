@@ -17,7 +17,7 @@ model Judge {
 model User {
   id           BigInt     @id @db.BigInt
   banned       Boolean @default(false)
-  minecraft_id String
+  minecraft_id String @unique
   points       Float     @default(0)
 }
 
