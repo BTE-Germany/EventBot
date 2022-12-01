@@ -56,49 +56,95 @@ createCommand({
             }
           );
         } else {
-          await deleteMessage(
-            Bot,
-            configs.submission_channel,
-            build.message.toString()
-          );
-          await deleteMessage(
-            Bot,
-            configs.judge_channel,
-            build.judge_msg.toString()
-          );
-          await prisma.build.delete({
-            where: {
-              id: interaction.data.options[0].value || "",
-            },
-          });
-          await prisma.user
-            .findUnique({
+          if (build.judges.length < 2) {
+            await deleteMessage(
+              Bot,
+              configs.submission_channel,
+              build.message.toString()
+            );
+            await deleteMessage(
+              Bot,
+              configs.judge_channel,
+              build.judge_msg.toString()
+            );
+            await prisma.build.delete({
               where: {
-                id: build.builder_id,
+                id: interaction.data.options[0].value || "",
               },
-            })
-            .then(async (user) => {
-              await prisma.user.update({
+            });
+            await prisma.user
+              .findUnique({
                 where: {
                   id: build.builder_id,
                 },
-                data: {
-                  points: user.points - 10,
-                },
+              })
+              .then(async (user) => {
+                await prisma.user.update({
+                  where: {
+                    id: build.builder_id,
+                  },
+                  data: {
+                    points: user.points - 10,
+                  },
+                });
               });
-            });
-          await Bot.helpers.sendInteractionResponse(
-            interaction.id,
-            interaction.token,
-            {
-              type: InteractionResponseTypes.ChannelMessageWithSource,
-              data: {
-                content:
-                  "Build deleted with reason: " +
-                  interaction.data.options[1].value,
+            await Bot.helpers.sendInteractionResponse(
+              interaction.id,
+              interaction.token,
+              {
+                type: InteractionResponseTypes.ChannelMessageWithSource,
+                data: {
+                  content:
+                    "Build deleted with reason: " +
+                    interaction.data.options[1].value,
+                },
+              }
+            );
+          } else {
+            await deleteMessage(
+              Bot,
+              configs.submission_channel,
+              build.message.toString()
+            );
+            await deleteMessage(
+              Bot,
+              configs.judge_channel,
+              build.judge_msg.toString()
+            );
+            await prisma.build.delete({
+              where: {
+                id: interaction.data.options[0].value || "",
               },
-            }
-          );
+            });
+            await prisma.user
+              .findUnique({
+                where: {
+                  id: build.builder_id,
+                },
+              })
+              .then(async (user) => {
+                await prisma.user.update({
+                  where: {
+                    id: build.builder_id,
+                  },
+                  data: {
+                    points: user.points - 10 - build.A - build.B,
+                  },
+                });
+              });
+            await Bot.helpers.sendInteractionResponse(
+              interaction.id,
+              interaction.token,
+              {
+                type: InteractionResponseTypes.ChannelMessageWithSource,
+                data: {
+                  content:
+                    "Build deleted with reason: " +
+                    interaction.data.options[1].value,
+                },
+              }
+            );
+          }
         }
       });
   },
