@@ -6,8 +6,8 @@ import {
 import { createCommand } from "./mod.ts";
 import { PrismaClient } from "../../generated/client/deno/edge.ts";
 import { config } from "https://deno.land/std@0.163.0/dotenv/mod.ts";
-import { deleteMessage } from "../../deps.ts";
 import { configs } from "../../configs.ts";
+import {updateLeaderBoard} from "../utils/updateLeaderBoard.ts";
 
 const env = await config();
 const prisma = new PrismaClient({
@@ -64,6 +64,12 @@ createCommand({
       ],
       required: true,
     },
+    {
+      name: "grundpunkte",
+      description: "Grundpunkte des Builds",
+      type: ApplicationCommandOptionTypes.Boolean,
+      required: false
+    }
   ],
   type: ApplicationCommandTypes.ChatInput,
   execute: async (Bot, interaction) => {
@@ -103,6 +109,7 @@ createCommand({
               },
             }
           );
+          return;
         }
         if (build.judges?.length === 0) {
           const judges = [interaction.user.id.toString()];
@@ -114,6 +121,7 @@ createCommand({
               judges: judges,
               A: interaction?.data.options[1].value,
               B: interaction?.data.options[2].value,
+              base_points: !!(interaction?.data.options[3].value),
             },
           });
           await Bot.helpers.sendInteractionResponse(
@@ -126,6 +134,7 @@ createCommand({
               },
             }
           );
+        return;
         }
         if (build.judges?.length === 1) {
           const judges = build.judges;
@@ -145,12 +154,13 @@ createCommand({
               id: build.builder_id,
             },
           });
+          const base_points = build.base_points ? 0 : -10;
           await prisma.user.update({
             where: {
               id: build.builder_id,
             },
             data: {
-              points: user?.points + ((build.A + interaction?.data.options[1].value) / 2) + ((build.B + interaction?.data.options[2].value) / 2),
+              points: user?.points + ((build.A + interaction?.data.options[1].value) / 2) + ((build.B + interaction?.data.options[2].value) / 2) + base_points,
             },
           });
           await Bot.helpers.sendInteractionResponse(
@@ -159,7 +169,7 @@ createCommand({
             {
               type: InteractionResponseTypes.ChannelMessageWithSource,
               data: {
-                content: "Build judged.",
+                content: "Build bewertet. Punkte wurden dem User gutgeschrieben. Du warst der 2. Judge. Somit wurde deine Entscheidung für base_points ignoriert.",
               },
             }
           );
@@ -264,6 +274,7 @@ createCommand({
               ],
             }
           );
+          return;
         }
         if (build.judges?.length > 1) {
           await Bot.helpers.sendInteractionResponse(
@@ -276,6 +287,7 @@ createCommand({
               },
             }
           );
+          return;
         }
       }
     } else {
@@ -290,5 +302,6 @@ createCommand({
         }
       );
     }
+    await updateLeaderBoard(Bot);
   },
 });

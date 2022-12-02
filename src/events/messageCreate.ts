@@ -3,6 +3,7 @@ import { configs } from "../../configs.ts";
 import { PrismaClient } from "../../generated/client/deno/edge.ts";
 import { config } from "https://deno.land/std@0.163.0/dotenv/mod.ts";
 import { setTimeout } from "https://deno.land/std@0.166.0/node/timers.ts";
+import {updateLeaderBoard} from "../utils/updateLeaderBoard.ts";
 
 const env = await config();
 
@@ -158,6 +159,7 @@ Bot.events.messageCreate = async function (_, message) {
             points: user.points + 10,
           },
         });
+        await updateLeaderBoard(Bot);
       } else {
         const botmessage = await Bot.helpers.sendMessage(message.channelId, {
           content:

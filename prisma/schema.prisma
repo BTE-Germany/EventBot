@@ -28,6 +28,7 @@ model Build {
   location String
   A        Float @default(0)
   B        Float @default(0)
+  base_points Boolean @default(true)
   images   String[]
   builder_id  BigInt @db.BigInt
   judges   String[]

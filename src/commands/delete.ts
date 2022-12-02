@@ -8,6 +8,7 @@ import { PrismaClient } from "../../generated/client/deno/edge.ts";
 import { config } from "https://deno.land/std@0.163.0/dotenv/mod.ts";
 import { deleteMessage } from "../../deps.ts";
 import { configs } from "../../configs.ts";
+import {updateLeaderBoard} from "../utils/updateLeaderBoard.ts";
 
 const env = await config();
 const prisma = new PrismaClient({
@@ -147,5 +148,6 @@ createCommand({
           }
         }
       });
+    updateLeaderBoard(Bot);
   },
 });
