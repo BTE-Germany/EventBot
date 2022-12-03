@@ -183,6 +183,7 @@ createCommand({
                 ],
               }
           );
+          await updateLeaderBoard(Bot);
         return;
         }
         if (build.judges?.length === 1) {
@@ -242,7 +243,7 @@ createCommand({
                   fields: [
                     {
                       name: "Bewertung",
-                      value: `Details: ${build.A}\nAufwand: ${build.B}`,
+                      value: `Details: ${(build.A + interaction?.data.options[1].value) / 2}\nAufwand: ${(build.B + interaction?.data.options[2].value) / 2}`,
                     },
                   ],
                 },
@@ -324,6 +325,7 @@ createCommand({
               ],
             }
           );
+          await updateLeaderBoard(Bot);
           return;
         }
         if (build.judges?.length > 1) {
@@ -352,6 +354,5 @@ createCommand({
         }
       );
     }
-    await updateLeaderBoard(Bot);
   },
 });
