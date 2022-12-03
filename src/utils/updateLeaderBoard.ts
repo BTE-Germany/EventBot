@@ -34,7 +34,7 @@ export async function updateLeaderBoard(Bot: BotClient) {
                         :two: ${((await Bot.helpers.getUser(users[1].id)).username)}#${((await Bot.helpers.getUser(users[1].id)).discriminator)} - ${users[1].points}
                         :three: ${((await Bot.helpers.getUser(users[2].id)).username)}#${((await Bot.helpers.getUser(users[2].id)).discriminator)} - ${users[2].points}
                         
-                        Runner-ups:
+                        Run-ups:
                         5. ${((await Bot.helpers.getUser(users[3].id)).username)}#${((await Bot.helpers.getUser(users[3].id)).discriminator)} - ${users[3].points}
                         6. ${((await Bot.helpers.getUser(users[4].id)).username)}#${((await Bot.helpers.getUser(users[4].id)).discriminator)} - ${users[4].points}`
                     },
