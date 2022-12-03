@@ -14,8 +14,7 @@ import { configs } from "../../configs.ts";
 export async function updateLeaderBoard(Bot: BotClient) {
     let users = await prisma.user.findMany();
     users = users.sort((a, b) => b.points - a.points);
-    console.log(users);
-    let builds = await prisma.build.findMany();
+    const builds = await prisma.build.findMany();
     let points = 0;
     //calculate points
     users.forEach((user) => {

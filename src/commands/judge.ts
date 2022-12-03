@@ -113,6 +113,9 @@ createCommand({
         }
         if (build.judges?.length === 0) {
           const judges = [interaction.user.id.toString()];
+          const base_points = (typeof interaction?.data.options[3]?.value === Boolean) ? interaction?.data.options[3].value : true;
+          console.log(base_points);
+          console.log(typeof base_points);
           await prisma.build.update({
             where: {
               id: interaction?.data.options[0].value,
@@ -121,7 +124,7 @@ createCommand({
               judges: judges,
               A: interaction?.data.options[1].value,
               B: interaction?.data.options[2].value,
-              base_points: !!(interaction?.data.options[3].value),
+              base_points: base_points,
             },
           });
           await Bot.helpers.sendInteractionResponse(
@@ -133,6 +136,52 @@ createCommand({
                 content: "Build judged.",
               },
             }
+          );
+          const User = await Bot.helpers.getUser(build.builder_id);
+          await Bot.helpers.editMessage(
+              configs.judge_channel,
+              build.judge_msg.toString(),
+              {
+                content: " ",
+                embeds: [
+                  {
+                    title: `#${build.id.toString()}`,
+                    description: `Koordinaten: ${build.location}`,
+                    url: "https://bte-germany.de",
+                    author: {
+                      name: `${User.username}#${User.discriminator}`,
+                    },
+                    color: 16761344,
+                    image: {
+                      url: build.images[0],
+                    },
+                  },
+                  {
+                    url: "https://bte-germany.de",
+                    image: {
+                      url: build.images[1]
+                          ? build.images[1]
+                          : "https://google.com",
+                    },
+                  },
+                  {
+                    url: "https://bte-germany.de",
+                    image: {
+                      url: build.images[2]
+                          ? build.images[2]
+                          : "https://google.com",
+                    },
+                  },
+                  {
+                    url: "https://bte-germany.de",
+                    image: {
+                      url: build.images[3]
+                          ? build.images[3]
+                          : "https://google.com",
+                    },
+                  },
+                ],
+              }
           );
         return;
         }
@@ -234,6 +283,7 @@ createCommand({
                   title: `#${build.id.toString()}`,
                   description: `Koordinaten: ${build.location}`,
                   url: "https://bte-germany.de",
+                  color: 7119627,
                   author: {
                     name: `${User.username}#${User.discriminator}`,
                   },
