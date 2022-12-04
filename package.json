@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "run": "deno run -A --unstable npm:prisma db push && deno run -A mod.ts"
+    "run": "deno run -A --unstable npm:prisma generate --data-proxy && deno run -A mod.ts"
   },
   "keywords": [],
   "author": "",
