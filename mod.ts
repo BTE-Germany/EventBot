@@ -3,6 +3,7 @@ import log from "./src/utils/logger.ts";
 import { fileLoader, importDirectory } from "./src/utils/loader.ts";
 import { updateApplicationCommands } from "./src/utils/updateCommands.ts";
 import { Bot } from "./bot.ts";
+import startServer from "./src/endpoints/server.ts";
 
 log.info("Starting bot...");
 
@@ -21,3 +22,6 @@ await updateApplicationCommands();
 
 // STARTS THE CONNECTION TO DISCORD
 await startBot(Bot);
+
+await startServer();
+
