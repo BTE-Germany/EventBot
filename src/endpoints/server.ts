@@ -22,7 +22,6 @@ export default async function startServer() {
     app.use(router.routes());
     app.use(router.allowedMethods());
     router.get("/leaderboard", async (ctx) => {
-        console.log("test");
         let users = await prisma.user.findMany();
         users = users.sort((a, b) => b.points - a.points);
         const builds = await prisma.build.findMany();
@@ -30,7 +29,6 @@ export default async function startServer() {
         users.forEach((user) => {
             points = points + user.points;
         });
-        console.log("Helo")
         ctx.response.body = {
             users: JSON.parse(JSON.stringify(users, (_, v) => typeof v === 'bigint' ? v.toString() : v)),
             builds: JSON.parse(JSON.stringify(builds, (_, v) => typeof v === 'bigint' ? v.toString() : v)),
