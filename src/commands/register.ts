@@ -30,24 +30,9 @@ createCommand({
     ],
     type: ApplicationCommandTypes.ChatInput,
     execute: async (Bot, interaction) => {
-        const minecraft = await fetch(`https://api.mojang.com/users/profiles/minecraft/${interaction.data.options[0].value}`);
-        if (minecraft.status === 204) {
-            await Bot.helpers.sendInteractionResponse(
-                interaction.id,
-                interaction.token,
-                {
-                    type: InteractionResponseTypes.ChannelMessageWithSource,
-                    data: {
-                        content: "Dieser Minecraft-Name existiert nicht.",
-                    },
-                }
-            );
-        }
-        else {
-        const { id } = await minecraft.json();
             prisma.user.findFirst({
                 where: {
-                    minecraft_id: id,
+                    minecraft_id: interaction?.data.options[0].value,
                 }
             }).then(async (user) => {
                 if(user){
@@ -64,7 +49,7 @@ createCommand({
                 }else{
                     prisma.user.create({
                         data: {
-                            minecraft_id: id,
+                            minecraft_id: interaction?.data.options[0].value,
                             id: interaction.member.user.id
                         }
                     }).then(async () => {
@@ -92,7 +77,6 @@ createCommand({
                     });
                 }
             });
-        }
         await updateLeaderBoard(Bot);
     }
 });
