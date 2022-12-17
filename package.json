@@ -13,6 +13,8 @@
     "prisma": "^4.6.1"
   },
   "dependencies": {
-    "@prisma/client": "^4.6.1"
+    "@prisma/client": "^4.6.1",
+    "fs": "^0.0.1-security",
+    "minio": "^7.0.32"
   }
 }
