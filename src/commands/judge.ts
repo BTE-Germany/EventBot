@@ -114,8 +114,6 @@ createCommand({
         if (build.judges?.length === 0) {
           const judges = [interaction.user.id.toString()];
           const base_points = (typeof interaction?.data.options[3]?.value === Boolean) ? interaction?.data.options[3].value : true;
-          console.log(base_points);
-          console.log(typeof base_points);
           await prisma.build.update({
             where: {
               id: interaction?.data.options[0].value,
@@ -138,49 +136,29 @@ createCommand({
             }
           );
           const User = await Bot.helpers.getUser(build.builder_id);
+          let embeds = [{
+            title: `#${build.id.toString()}`,
+            description: `Koordinaten: ${build.location}`,
+            url: "https://bte-germany.de",
+            color: 16761344,
+            author: {
+              name: `${User.username}#${User.discriminator}`,
+            }
+          },];
+          build.images.forEach((image) => {
+            embeds.push({
+              url: "https://bte-germany.de",
+              image: {
+                url: image,
+              }
+            });
+          });
           await Bot.helpers.editMessage(
               configs.judge_channel,
               build.judge_msg.toString(),
               {
                 content: " ",
-                embeds: [
-                  {
-                    title: `#${build.id.toString()}`,
-                    description: `Koordinaten: ${build.location}`,
-                    url: "https://bte-germany.de",
-                    author: {
-                      name: `${User.username}#${User.discriminator}`,
-                    },
-                    color: 16761344,
-                    image: {
-                      url: build.images[0],
-                    },
-                  },
-                  {
-                    url: "https://bte-germany.de",
-                    image: {
-                      url: build.images[1]
-                          ? build.images[1]
-                          : "https://google.com",
-                    },
-                  },
-                  {
-                    url: "https://bte-germany.de",
-                    image: {
-                      url: build.images[2]
-                          ? build.images[2]
-                          : "https://google.com",
-                    },
-                  },
-                  {
-                    url: "https://bte-germany.de",
-                    image: {
-                      url: build.images[3]
-                          ? build.images[3]
-                          : "https://google.com",
-                    },
-                  },
-                ],
+                embeds: embeds
               }
           );
           await updateLeaderBoard(Bot);
@@ -224,54 +202,35 @@ createCommand({
             }
           );
           const User = await Bot.helpers.getUser(build.builder_id);
+          let embeds = [{
+            title: `#${build.id.toString()}`,
+            description: `Koordinaten: ${build.location}`,
+            url: "https://bte-germany.de",
+            color: 7119627,
+            author: {
+              name: `${User.username}#${User.discriminator}`,
+            },
+            fields: [
+              {
+                name: "Bewertung",
+                value: `Details: ${(build.A + interaction?.data.options[1].value) / 2}\nAufwand: ${(build.B + interaction?.data.options[2].value) / 2}`,
+              },
+            ],
+          },];
+          build.images.forEach((image) => {
+            embeds.push({
+                url: "https://bte-germany.de",
+                image: {
+                    url: image,
+                }
+            });
+          });
           await Bot.helpers.editMessage(
               configs.submission_channel,
             build.message.toString(),
             {
               content: " ",
-              embeds: [
-                {
-                  title: `#${build.id.toString()}`,
-                  description: `Koordinaten: ${build.location}`,
-                  url: "https://bte-germany.de",
-                  author: {
-                    name: `${User.username}#${User.discriminator}`,
-                  },
-                  image: {
-                    url: build.images[0],
-                  },
-                  fields: [
-                    {
-                      name: "Bewertung",
-                      value: `Details: ${(build.A + interaction?.data.options[1].value) / 2}\nAufwand: ${(build.B + interaction?.data.options[2].value) / 2}`,
-                    },
-                  ],
-                },
-                {
-                  url: "https://bte-germany.de",
-                  image: {
-                    url: build.images[1]
-                      ? build.images[1]
-                      : "https://google.com",
-                  },
-                },
-                {
-                  url: "https://bte-germany.de",
-                  image: {
-                    url: build.images[2]
-                      ? build.images[2]
-                      : "https://google.com",
-                  },
-                },
-                {
-                  url: "https://bte-germany.de",
-                  image: {
-                    url: build.images[3]
-                      ? build.images[3]
-                      : "https://google.com",
-                  },
-                },
-              ],
+              embeds: embeds
             }
           );
           await Bot.helpers.editMessage(
@@ -279,50 +238,7 @@ createCommand({
             build.judge_msg.toString(),
             {
               content: " ",
-              embeds: [
-                {
-                  title: `#${build.id.toString()}`,
-                  description: `Koordinaten: ${build.location}`,
-                  url: "https://bte-germany.de",
-                  color: 7119627,
-                  author: {
-                    name: `${User.username}#${User.discriminator}`,
-                  },
-                  image: {
-                    url: build.images[0],
-                  },
-                  fields: [
-                    {
-                      name: "Bewertung",
-                      value: `Details: ${build.A}\nAufwand: ${build.B}`,
-                    },
-                  ],
-                },
-                {
-                  url: "https://bte-germany.de",
-                  image: {
-                    url: build.images[1]
-                      ? build.images[1]
-                      : "https://google.com",
-                  },
-                },
-                {
-                  url: "https://bte-germany.de",
-                  image: {
-                    url: build.images[2]
-                      ? build.images[2]
-                      : "https://google.com",
-                  },
-                },
-                {
-                  url: "https://bte-germany.de",
-                  image: {
-                    url: build.images[3]
-                      ? build.images[3]
-                      : "https://google.com",
-                  },
-                },
-              ],
+              embeds: embeds,
             }
           );
           await updateLeaderBoard(Bot);

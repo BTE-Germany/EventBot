@@ -60,7 +60,8 @@ Bot.events.messageCreate = async function (_, message) {
                     .create({
                         data: {
                             builder_id: BigInt(message.member?.id || ""),
-                            location: message.content
+                            location: message.content,
+                            images: ["loading"]
                         },
                     })
                     .then(async (obj) => {
@@ -75,18 +76,27 @@ Bot.events.messageCreate = async function (_, message) {
                                 },
                             },
                         ];
-
-                        for (const image of obj.images.slice(0, 3)) {
+                        let images = [];
+                        for (const image of message.attachments.slice(0, 3)) {
                             let uuid = crypto.randomUUID();
-                            const response = await fetch(image);
-                            await s3client.putObject(`${user.id}/${uuid}${image.substring(image.lastIndexOf("."))}`, response.body);
+                            const response = await fetch(image.url);
+                            await s3client.putObject(`${user.id}/${uuid}${image.url.substring(image.url.lastIndexOf("."))}`, response.body);
                             embeds.push({
                                 url: "https://bte-germany.de",
                                 image: {
-                                    url: configs.minio_url + `${user.id}/${uuid}${image.substring(image.lastIndexOf("."))}`,
+                                    url: configs.minio_url + `${user.id}/${uuid}${image.url.substring(image.url.lastIndexOf("."))}`,
                                 },
                             });
+                            images.push(configs.minio_url + `${user.id}/${uuid}${image.url.substring(image.url.lastIndexOf("."))}`);
                         }
+                        await prisma.build.update({
+                            where: {
+                                id: obj.id
+                            },
+                            data: {
+                                images: images
+                            }
+                        });
                         Bot.helpers
                             .sendMessage(message.channelId, {
                                 content: " ",

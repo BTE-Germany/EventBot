@@ -31,4 +31,5 @@ model Build {
   base_points Boolean @default(true)
   builder_id  BigInt @db.BigInt
   judges   String[]
+  images   String[]
 }
