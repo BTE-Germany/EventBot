@@ -2,6 +2,7 @@ import {Oak} from "../../deps.ts";
 import log from "../utils/logger.ts";
 import {PrismaClient} from "../../generated/client/deno/edge.ts";
 import {config} from "https://deno.land/std@0.163.0/dotenv/mod.ts";
+import { oakCors } from "https://deno.land/x/cors/mod.ts";
 
 const port = 6969;
 const app = new Oak.Application();
@@ -19,6 +20,7 @@ export default async function startServer() {
     app.addEventListener('listen', () => {
         log.info("[API] Server started on port " + port);
     });
+    app.use(oakCors());
     app.use(router.routes());
     app.use(router.allowedMethods());
     router.get("/leaderboard", async (ctx) => {
