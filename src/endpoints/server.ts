@@ -3,7 +3,7 @@ import log from "../utils/logger.ts";
 import {PrismaClient} from "../../generated/client/deno/edge.ts";
 import {config} from "https://deno.land/std@0.163.0/dotenv/mod.ts";
 
-const port = 8000;
+const port = 6969;
 const app = new Oak.Application();
 const router = new Oak.Router();
 const env = await config();
