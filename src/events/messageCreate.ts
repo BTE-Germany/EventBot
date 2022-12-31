@@ -11,7 +11,7 @@ const env = await config();
 const s3client = new S3.S3Client({
     endPoint: configs.minio_endpoint,
     port: 9000,
-    useSSL: true,
+    useSSL: false,
     accessKey: configs.minio_access,
     secretKey: configs.minio_secret,
     bucket: configs.minio_bucket,
