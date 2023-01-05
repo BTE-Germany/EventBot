@@ -4,19 +4,8 @@ import {PrismaClient} from "../../generated/client/deno/edge.ts";
 import {config} from "https://deno.land/std@0.163.0/dotenv/mod.ts";
 import {setTimeout} from "https://deno.land/std@0.166.0/node/timers.ts";
 import {updateLeaderBoard} from "../utils/updateLeaderBoard.ts";
-import {S3} from "../../deps.ts"
-
+import * as AzureStorageBlob from "npm:@azure/storage-blob";
 const env = await config();
-
-const s3client = new S3.S3Client({
-    endPoint: configs.minio_endpoint,
-    port: 443,
-    useSSL: true,
-    accessKey: configs.minio_access,
-    secretKey: configs.minio_secret,
-    bucket: configs.minio_bucket,
-});
-
 const prisma = new PrismaClient({
     datasources: {
         db: {
@@ -24,6 +13,11 @@ const prisma = new PrismaClient({
         },
     },
 });
+
+const BlobClient = AzureStorageBlob.BlobServiceClient.fromConnectionString(
+    configs.azureconnectionstring,
+);
+const containerClient = BlobClient.getContainerClient(configs.azure_container);
 
 Bot.events.messageCreate = async function (_, message) {
     if (message.authorId === Bot.id) return;
@@ -79,15 +73,16 @@ Bot.events.messageCreate = async function (_, message) {
                         let images = [];
                         for (const image of message.attachments.slice(0, 3)) {
                             let uuid = crypto.randomUUID();
-                            const response = await fetch(image.url);
-                            await s3client.putObject(`${user.id}/${uuid}${image.url.substring(image.url.lastIndexOf("."))}`, response.body);
+                            const unresponse = await fetch(image.url);
+                            const response = await unresponse.arrayBuffer();
+                            await containerClient.getBlockBlobClient(`${user.id}.${uuid}${image.url.substring(image.url.lastIndexOf("."))}`).upload(response, response.byteLength);
                             embeds.push({
                                 url: "https://bte-germany.de",
                                 image: {
-                                    url: configs.minio_url + `${user.id}/${uuid}${image.url.substring(image.url.lastIndexOf("."))}`,
+                                    url: configs.azure_url + `${user.id}.${uuid}${image.url.substring(image.url.lastIndexOf("."))}`,
                                 },
                             });
-                            images.push(configs.minio_url + `${user.id}/${uuid}${image.url.substring(image.url.lastIndexOf("."))}`);
+                            images.push(configs.azure_url + `${user.id}.${uuid}${image.url.substring(image.url.lastIndexOf("."))}`);
                         }
                         await prisma.build.update({
                             where: {
