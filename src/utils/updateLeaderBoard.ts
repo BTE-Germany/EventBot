@@ -25,7 +25,7 @@ export async function updateLeaderBoard(Bot: BotClient) {
         "content": null,
         "embeds": [
             {
-                "title": "BTE Germany Weihnachtsevent",
+                "title": configs.event_name,
                 "color": 10630453,
                 "fields": [
                     {
@@ -49,7 +49,7 @@ export async function updateLeaderBoard(Bot: BotClient) {
                     "text": "Starte noch heute und kämpfe dich an die Spitze! Registrierung via /register"
                 },
                 "thumbnail": {
-                    "url": "https://cdn.discordapp.com/attachments/724288663818600573/1047913656517664849/btede_christmas2.0.gif"
+                    "url": configs.event_img
                 }
             }
         ],

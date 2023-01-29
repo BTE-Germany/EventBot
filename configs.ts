@@ -13,6 +13,8 @@ const minio_secret = env.MINIO_SECRET || "";
 const minio_endpoint = env.MINIO_ENDPOINT || "";
 const minio_bucket = env.MINIO_BUCKET || "";
 const minio_url = env.MINIO_URL || "";
+const event_name = env.EVENT_NAME || "";
+const event_img = env.EVENT_IMG || "";
 
 export interface Config {
   token: string;
@@ -26,6 +28,8 @@ export interface Config {
   minio_endpoint: string;
   minio_bucket: string;
   minio_url: string;
+  event_name: string;
+  event_img: string;
 }
 
 export const configs = {
@@ -40,4 +44,6 @@ export const configs = {
   minio_endpoint: minio_endpoint,
   minio_bucket: minio_bucket,
   minio_url: minio_url,
+  event_name: event_name,
+  event_img: event_img,
 };
