@@ -16,7 +16,7 @@ export async function updateLeaderBoard(Bot: BotClient) {
     let usersdata = await prisma.user.findMany();
     let users = usersdata.map((user) => {
         return {
-            id: user.id,
+            id: user.id.toString(),
             points: user.points,
         };
     });
