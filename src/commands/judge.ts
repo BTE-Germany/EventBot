@@ -1,12 +1,8 @@
-import {
-  ApplicationCommandOptionTypes,
-  ApplicationCommandTypes,
-  InteractionResponseTypes,
-} from "../../deps.ts";
-import { createCommand } from "./mod.ts";
-import { PrismaClient } from "../../generated/client/deno/edge.ts";
-import { config } from "https://deno.land/std@0.163.0/dotenv/mod.ts";
-import { configs } from "../../configs.ts";
+import {ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes,} from "../../deps.ts";
+import {createCommand} from "./mod.ts";
+import {PrismaClient} from "../../generated/client/deno/edge.ts";
+import {config} from "https://deno.land/std@0.163.0/dotenv/mod.ts";
+import {configs} from "../../configs.ts";
 import {updateLeaderBoard} from "../utils/updateLeaderBoard.ts";
 
 const env = await config();
@@ -74,19 +70,17 @@ createCommand({
   type: ApplicationCommandTypes.ChatInput,
   execute: async (Bot, interaction) => {
     if (
-      await prisma.judge.findUnique({
-        where: { id: interaction.member.user.id },
-      })
-    ) {
-      const [build] = await Promise.all([
+        interaction.member.user.roles.has(configs.ping_role)
+    )
+      const build = await Promise.all([
         prisma.build.findUnique({
           where: {
             id: interaction.data.options[0].value || 0,
           },
         }),
       ]);
-      if (!build) {
-        await Bot.helpers.sendInteractionResponse(
+    if (!build) {
+      await Bot.helpers.sendInteractionResponse(
           interaction.id,
           interaction.token,
           {
@@ -95,8 +89,8 @@ createCommand({
               content: "Build not found.",
             },
           }
-        );
-      } else {
+      );
+    } else {
         if (build.judges.includes(interaction.member.user.id.toString())) {
           //already judged this build
           await Bot.helpers.sendInteractionResponse(
@@ -261,14 +255,14 @@ createCommand({
     } else {
       await Bot.helpers.sendInteractionResponse(
         interaction.id,
-        interaction.token,
-        {
-          type: InteractionResponseTypes.ChannelMessageWithSource,
-          data: {
-            content: "Du bist kein Judge.",
-          },
-        }
+          interaction.token,
+          {
+            type: InteractionResponseTypes.ChannelMessageWithSource,
+            data: {
+              content: "Du bist kein Judge.",
+            },
+          }
       );
-    }
-  },
-});
+  }
+},
+})
