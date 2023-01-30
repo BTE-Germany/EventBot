@@ -71,7 +71,7 @@ createCommand({
   execute: async (Bot, interaction) => {
     if (
         interaction.member.user.roles.has(configs.ping_role)
-    )
+    ) {
       const build = await Promise.all([
         prisma.build.findUnique({
           where: {
@@ -79,9 +79,9 @@ createCommand({
           },
         }),
       ]);
-    if (!build) {
-      await Bot.helpers.sendInteractionResponse(
-          interaction.id,
+      if (!build) {
+        await Bot.helpers.sendInteractionResponse(
+            interaction.id,
           interaction.token,
           {
             type: InteractionResponseTypes.ChannelMessageWithSource,
