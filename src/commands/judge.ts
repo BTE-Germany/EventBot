@@ -93,7 +93,7 @@ createCommand({
             }
         );
       } else {
-        if (build.judges.includes(interaction.member.user.id.toString())) {
+        if (JSON.parse(build.judges).includes(interaction.member.user.id.toString())) {
           //already judged this build
           await Bot.helpers.sendInteractionResponse(
               interaction.id,
@@ -107,7 +107,7 @@ createCommand({
           );
           return;
         }
-        if (build.judges?.length === 0) {
+        if (JSON.parse(build.judges).length === 0) {
           const judges = [interaction.user.id.toString()];
           const base_points = (typeof interaction?.data.options[3]?.value === Boolean) ? interaction?.data.options[3].value : true;
           await prisma.build.update({
@@ -115,7 +115,7 @@ createCommand({
               id: interaction?.data.options[0].value,
             },
             data: {
-              judges: judges,
+              judges: JSON.stringify(judges),
               A: interaction?.data.options[1].value,
               B: interaction?.data.options[2].value,
               base_points: base_points,
@@ -141,7 +141,7 @@ createCommand({
               name: `${User.username}#${User.discriminator}`,
             }
           },];
-          build.images.forEach((image) => {
+          JSON.parse(build.images).forEach((image) => {
             embeds.push({
               url: "https://bte-germany.de",
               image: {
@@ -158,9 +158,9 @@ createCommand({
               }
           );
           await updateLeaderBoard(Bot);
-        return;
+          return;
         }
-        if (build.judges?.length === 1) {
+        if (JSON.parse(build.judges).length === 1) {
           const judges = build.judges;
           judges.push(interaction.user.id.toString());
           await prisma.build.update({
@@ -168,7 +168,7 @@ createCommand({
               id: interaction?.data.options[0].value,
             },
             data: {
-              judges: judges,
+              judges: JSON.stringify(judges),
               A: (build.A + interaction?.data.options[1].value) / 2,
               B: (build.B + interaction?.data.options[2].value) / 2,
             },
@@ -213,12 +213,12 @@ createCommand({
               },
             ],
           },];
-          build.images.forEach((image) => {
+          JSON.parse(build.images).forEach((image: any) => {
             embeds.push({
-                url: "https://bte-germany.de",
-                image: {
-                    url: image,
-                }
+              url: "https://bte-germany.de",
+              image: {
+                url: image,
+              }
             });
           });
           await Bot.helpers.editMessage(
@@ -231,25 +231,25 @@ createCommand({
           );
           await Bot.helpers.editMessage(
               configs.judge_channel,
-            build.judge_msg.toString(),
-            {
-              content: " ",
-              embeds: embeds,
-            }
+              build.judge_msg.toString(),
+              {
+                content: " ",
+                embeds: embeds,
+              }
           );
           await updateLeaderBoard(Bot);
           return;
         }
-        if (build.judges?.length > 1) {
+        if (JSON.parse(build.judges).length > 1) {
           await Bot.helpers.sendInteractionResponse(
-            interaction.id,
-            interaction.token,
-            {
-              type: InteractionResponseTypes.ChannelMessageWithSource,
-              data: {
-                content: "This build has already been judged.",
-              },
-            }
+              interaction.id,
+              interaction.token,
+              {
+                type: InteractionResponseTypes.ChannelMessageWithSource,
+                data: {
+                  content: "This build has already been judged.",
+                },
+              }
           );
           return;
         }

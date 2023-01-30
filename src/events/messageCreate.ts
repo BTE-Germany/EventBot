@@ -61,7 +61,7 @@ Bot.events.messageCreate = async function (_, message) {
                         data: {
                             builder_id: BigInt(message.member?.id || ""),
                             location: message.content,
-                            images: ["loading"]
+                            images: JSON.stringify(['loading'])
                         },
                     })
                     .then(async (obj) => {
@@ -94,7 +94,7 @@ Bot.events.messageCreate = async function (_, message) {
                                 id: obj.id
                             },
                             data: {
-                                images: images
+                                images: JSON.stringify(images)
                             }
                         });
                         Bot.helpers
