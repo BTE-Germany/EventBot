@@ -103,7 +103,7 @@ createCommand({
                 data: {
                   content: "You already judged this build.",
                 },
-            }
+              }
           );
           return;
         }
