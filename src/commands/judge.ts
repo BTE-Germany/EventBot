@@ -70,8 +70,10 @@ createCommand({
   type: ApplicationCommandTypes.ChatInput,
   execute: async (Bot, interaction) => {
     if (
-        interaction.member.user.roles.has(configs.ping_role)
-    )
+        await prisma.judge.findUnique({
+          where: {id: interaction.member.user.id},
+        })
+    ) {
       const [build] = await Promise.all([
         prisma.build.findUnique({
           where: {
@@ -79,28 +81,28 @@ createCommand({
           },
         }),
       ]);
-    if (!build) {
-      await Bot.helpers.sendInteractionResponse(
-          interaction.id,
-          interaction.token,
-          {
-            type: InteractionResponseTypes.ChannelMessageWithSource,
-            data: {
-              content: "Build not found.",
-            },
-          }
-      );
-    } else {
-        if (build.judges.includes(interaction.member.user.id.toString())) {
-          //already judged this build
-          await Bot.helpers.sendInteractionResponse(
+      if (!build) {
+        await Bot.helpers.sendInteractionResponse(
             interaction.id,
             interaction.token,
             {
               type: InteractionResponseTypes.ChannelMessageWithSource,
               data: {
-                content: "You already judged this build.",
+                content: "Build not found.",
               },
+            }
+        );
+      } else {
+        if (build.judges.includes(interaction.member.user.id.toString())) {
+          //already judged this build
+          await Bot.helpers.sendInteractionResponse(
+              interaction.id,
+              interaction.token,
+              {
+                type: InteractionResponseTypes.ChannelMessageWithSource,
+                data: {
+                  content: "You already judged this build.",
+                },
             }
           );
           return;
@@ -196,7 +198,7 @@ createCommand({
             }
           );
           const User = await Bot.helpers.getUser(build.builder_id);
-          const embeds = [{
+          let embeds = [{
             title: `#${build.id.toString()}`,
             description: `Koordinaten: ${build.location}`,
             url: "https://bte-germany.de",
@@ -254,7 +256,7 @@ createCommand({
       }
     } else {
       await Bot.helpers.sendInteractionResponse(
-        interaction.id,
+          interaction.id,
           interaction.token,
           {
             type: InteractionResponseTypes.ChannelMessageWithSource,
@@ -263,6 +265,6 @@ createCommand({
             },
           }
       );
-  }
-},
-})
+    }
+  },
+});
