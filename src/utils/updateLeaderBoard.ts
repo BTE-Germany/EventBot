@@ -13,13 +13,7 @@ const prisma = new PrismaClient({
 });
 
 export async function updateLeaderBoard(Bot: BotClient) {
-    let usersdata = await prisma.user.findMany();
-    let users = usersdata.map((user) => {
-        return {
-            id: BigInt(user.id),
-            points: user.points,
-        };
-    });
+    let users = await prisma.user.findMany();
     users = users.sort((a, b) => b.points - a.points);
     const builds = await prisma.build.findMany();
     let points = 0;

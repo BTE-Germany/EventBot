@@ -10,13 +10,13 @@ datasource db {
 }
 
 model Judge {
-  id            BigInt      @id @db.BigInt
+  id            BigInt      @id
   active        Boolean     @default(true)
   note          String?
 }
 
 model User {
-  id            BigInt      @id @db.BigInt
+  id            String      @id
   banned        Boolean     @default(false)
   minecraft_id  String      @unique
   points        Float       @default(0)
