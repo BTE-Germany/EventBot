@@ -74,10 +74,8 @@ createCommand({
   type: ApplicationCommandTypes.ChatInput,
   execute: async (Bot, interaction) => {
     if (
-      await prisma.judge.findUnique({
-        where: { id: interaction.member.user.id },
-      })
-    ) {
+        interaction.member.user.roles.has(configs.ping_role)
+    )
       const [build] = await Promise.all([
         prisma.build.findUnique({
           where: {
@@ -202,7 +200,7 @@ createCommand({
             }
           );
           const User = await Bot.helpers.getUser(build.builder_id);
-          let embeds = [{
+          const embeds = [{
             title: `#${build.id.toString()}`,
             description: `Koordinaten: ${build.location}`,
             url: "https://bte-germany.de",
