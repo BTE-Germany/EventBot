@@ -1,6 +1,8 @@
 import {BotClient} from "../../bot.ts";
-import { PrismaClient } from "../../generated/client/deno/edge.ts";
+import {PrismaClient} from "../../generated/client/deno/edge.ts";
 import {config} from "https://deno.land/std@0.163.0/dotenv/mod.ts";
+import {configs} from "../../configs.ts";
+
 const env = await config();
 const prisma = new PrismaClient({
     datasources: {
@@ -9,10 +11,12 @@ const prisma = new PrismaClient({
         },
     },
 });
-import { configs } from "../../configs.ts";
 
 export async function updateLeaderBoard(Bot: BotClient) {
     let users = await prisma.user.findMany();
+    users = JSON.stringify(users, (_key, value) => {
+        typeof value === 'bigint' ? value = value.toString() : value
+    });
     users = users.sort((a, b) => b.points - a.points);
     const builds = await prisma.build.findMany();
     let points = 0;
