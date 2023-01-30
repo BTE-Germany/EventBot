@@ -72,7 +72,7 @@ createCommand({
     if (
         interaction.member.user.roles.has(configs.ping_role)
     )
-      const [build] = await Promise.all([
+      const build = await Promise.all([
         prisma.build.findUnique({
           where: {
             id: interaction.data.options[0].value || 0,
@@ -196,7 +196,7 @@ createCommand({
             }
           );
           const User = await Bot.helpers.getUser(build.builder_id);
-          const embeds = [{
+          let embeds = [{
             title: `#${build.id.toString()}`,
             description: `Koordinaten: ${build.location}`,
             url: "https://bte-germany.de",
