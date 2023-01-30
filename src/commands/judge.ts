@@ -1,12 +1,8 @@
-import {
-  ApplicationCommandOptionTypes,
-  ApplicationCommandTypes,
-  InteractionResponseTypes,
-} from "../../deps.ts";
-import { createCommand } from "./mod.ts";
-import { PrismaClient } from "../../generated/client/deno/edge.ts";
-import { config } from "https://deno.land/std@0.163.0/dotenv/mod.ts";
-import { configs } from "../../configs.ts";
+import {ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes,} from "../../deps.ts";
+import {createCommand} from "./mod.ts";
+import {PrismaClient} from "../../generated/client/deno/edge.ts";
+import {config} from "https://deno.land/std@0.163.0/dotenv/mod.ts";
+import {configs} from "../../configs.ts";
 import {updateLeaderBoard} from "../utils/updateLeaderBoard.ts";
 
 const env = await config();
@@ -74,10 +70,8 @@ createCommand({
   type: ApplicationCommandTypes.ChatInput,
   execute: async (Bot, interaction) => {
     if (
-      await prisma.judge.findUnique({
-        where: { id: interaction.member.user.id },
-      })
-    ) {
+        interaction.member.user.roles.has(configs.ping_role)
+    )
       const [build] = await Promise.all([
         prisma.build.findUnique({
           where: {
@@ -85,8 +79,8 @@ createCommand({
           },
         }),
       ]);
-      if (!build) {
-        await Bot.helpers.sendInteractionResponse(
+    if (!build) {
+      await Bot.helpers.sendInteractionResponse(
           interaction.id,
           interaction.token,
           {
@@ -202,7 +196,7 @@ createCommand({
             }
           );
           const User = await Bot.helpers.getUser(build.builder_id);
-          let embeds = [{
+          const embeds = [{
             title: `#${build.id.toString()}`,
             description: `Koordinaten: ${build.location}`,
             url: "https://bte-germany.de",
@@ -271,4 +265,4 @@ createCommand({
       );
     }
   },
-});
+})
