@@ -17,6 +17,6 @@ module.exports = {
             origin: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE']
         });
-        await fastify.listen({port: 6969})
+        await fastify.listen({port: process.env.PORT || 3000});
     }
 }
