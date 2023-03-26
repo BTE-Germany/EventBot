@@ -1,5 +1,3 @@
-const updateLeaderBoard = require("../schedule/updateLeaderBoard");
-
 module.exports = {
     command: {
         name: "judge", description: "Judge a build!", options: [{
@@ -85,7 +83,6 @@ module.exports = {
                             content: " ", embeds: embeds
                         });
                     });
-                    await updateLeaderBoard.run(client);
                     console.log(new Date().toLocaleString(), `Judge ${interaction.member.user.id} judged build ${build.id} as ${interaction.options.getInteger("details")}/${interaction.options.getInteger("aufwand")}. Base_points: ${base_points}. 1/2 judges.`);
                     return;
                 }
@@ -146,7 +143,6 @@ module.exports = {
                             content: " ", embeds: embeds
                         });
                     });
-                    await updateLeaderBoard.run(client);
                     console.log(new Date().toLocaleString(), `Judge ${interaction.member.user.id} judged build ${build.id} as ${interaction.options.getInteger("details")}/${interaction.options.getInteger("aufwand")}. 2/2 judges.`);
                     return;
                 }

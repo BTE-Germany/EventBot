@@ -1,5 +1,3 @@
-const updateLeaderBoard = require("../schedule/updateLeaderBoard.js");
-
 module.exports = {
     command: {
         name: "register", description: "Event-Registrierung", options: [{
@@ -33,6 +31,5 @@ module.exports = {
                 });
             }
         });
-        await updateLeaderBoard.run(client, prisma);
     }
 }

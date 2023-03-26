@@ -5,7 +5,6 @@ const {BlobServiceClient} = require("@azure/storage-blob");
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const crypto = require('crypto');
 const containerClient = blobServiceClient.getContainerClient(process.env.CONTAINER_NAME);
-const updateLeaderBoard = require("../schedule/updateLeaderboard");
 
 module.exports = {
     name: "messageCreate", once: false, async execute(args) {
@@ -101,7 +100,6 @@ module.exports = {
                             points: user.points + 10
                         }
                     });
-                    await updateLeaderBoard.run(args.client, prisma);
                 } else {
                     const botmessage = await args.channel.send({
                         content: "Bitte hänge ein Bild an und schreibe die Koordinaten in die Nachricht",
