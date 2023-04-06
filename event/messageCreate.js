@@ -102,10 +102,7 @@ module.exports = {
                     });
                 } else {
                     const botmessage = await args.channel.send({
-                        content: "Bitte hänge ein Bild an und schreibe die Koordinaten in die Nachricht",
-                        messageReference: {
-                            messageID: BigInt(args.messageID)
-                        }
+                        content: "Bitte hänge ein Bild an und schreibe die Koordinaten in die Nachricht"
                     });
                     setTimeout(async () => {
                         await botmessage.delete();
