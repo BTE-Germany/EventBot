@@ -6,7 +6,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - "5672:5672"
+      - "6969:6969"
     env_file:
     - .env
     environment:
