@@ -1,0 +1,24 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "DiscordJS" ]
+  pull_request:
+    branches: [ "DiscordJS" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag EventBot:$(date +%s)
+    
+    - name: push-to-ghcr
+      uses: macbre/push-to-ghcr@v12
+      with:
+        image_name: "Mic-R/BTEG-EventBot"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
