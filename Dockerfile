@@ -11,4 +11,4 @@ RUN npx prisma generate
 
 COPY . .
 
-CMD ["node", "server.js"]
+CMD ["/bin/bash", "-c", "node server.js;npx prisma migrate deploy"]
