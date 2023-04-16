@@ -12,4 +12,4 @@ RUN npx prisma generate
 COPY . .
 EXPOSE 6969
 
-CMD ["npx prisma migrate deploy;node index.js"]
+CMD ["npm", "start"]
