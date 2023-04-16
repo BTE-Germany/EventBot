@@ -13,10 +13,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag EventBot:$(date +%s)
-    
     - name: push-to-ghcr
       uses: macbre/push-to-ghcr@v12
       with:
