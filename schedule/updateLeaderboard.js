@@ -32,7 +32,7 @@ module.exports = {
 
                         "value": `:one: ${guildMembers.find(member => member.id === users[0]?.id)?.username}#${guildMembers.find(member => member.id === users[0]?.id)?.discriminator} - ${users[0]?.points}
                         :two: ${guildMembers.find(member => member.id === users[1]?.id)?.username}#${guildMembers.find(member => member.id === users[1]?.id)?.discriminator} - ${users[1]?.points}
-                        :three: ${guildMembers.find(member => member.id === users[2]?.id)?.username}#${guildMembers.find(member => member.id === users[2]?.id)?.discriminator} - ${users[2].points}
+                        :three: ${guildMembers.find(member => member.id === users[2]?.id)?.username}#${guildMembers.find(member => member.id === users[2]?.id)?.discriminator} - ${users[2]?.points}
                         
                         Run-ups:
                         5. ${guildMembers.find(member => member.id === users[3]?.id)?.username}#${guildMembers.find(member => member.id === users[3]?.id)?.discriminator} - ${users[3]?.points}
