@@ -78,7 +78,7 @@ module.exports = {
                     });
                     await client.channels.cache.get(process.env.JUDGE_CHANNEL).messages.fetch(build.judge_msg.toString()).then(message => {
                         message.edit({
-                            content: " ", embeds: embeds
+                            content: `<@&${process.env.PING_ROLE}>`, embeds: embeds
                         });
                     });
                     console.log(new Date().toLocaleString(), `Judge ${interaction.member.user.id} judged build ${build.id} as ${interaction.options.getInteger("details")}/${interaction.options.getInteger("aufwand")}. Base_points: ${base_points}. 1/2 judges.`);
