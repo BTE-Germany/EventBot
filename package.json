@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "npx prisma migrate deploy && node index.js",
+    "start": "npx prisma generate && npx prisma db push && node index.js",
     "dev": "nodemon index.js"
   },
   "dependencies": {
