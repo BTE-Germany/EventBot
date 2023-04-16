@@ -30,9 +30,7 @@ module.exports = {
             name: "grundpunkte", description: "Grundpunkte des Builds", type: 5, required: false
         }],
     }, run: async (client, interaction, prisma) => {
-        if (await prisma.judge.findUnique({
-            where: {id: BigInt(interaction.member.user.id)},
-        })) {
+        if (interaction.member.roles.cache.some(role => role.id === process.env.PING_ROLE)) {
             const build = await prisma.build.findUnique({
                 where: {
                     id: interaction.options.getInteger("id") || 0,
