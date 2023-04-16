@@ -1,0 +1,30 @@
+version: '3'
+services:
+
+  bot:
+    image: ghcr.io/bte-germany/eventbot:latest
+    depends_on:
+      - postgres
+    ports:
+      - "5672:5672"
+    env_file:
+    - .env
+    environment:
+      - DATABASE_URL=postgresql://prisma:prisma@postgres:5432/db
+    links:
+      - postgres
+
+  postgres:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+      - POSTGRES_DB=db
+    volumes: 
+      - event-bot-db:/var/lib/postgresql/data
+      
+
+volumes:
+  event-bot-db:
+    driver: local
