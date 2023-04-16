@@ -7,11 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Judge {
-  id      BigInt     @id @db.BigInt
-  active  Boolean @default(true)
-}
-
 model User {
   id           BigInt     @id @db.BigInt
   banned       Boolean @default(false)
