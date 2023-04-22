@@ -23,8 +23,20 @@ services:
       - POSTGRES_DB=db
     volumes: 
       - event-bot-db:/var/lib/postgresql/data
+  
+  NoCoDB:
+    image: nocodb/nocodb:latest
+    volumes: 
+      - event-nocodb:/usr/app/data/
+    ports:
+      -  6970:8080
+    environment:
+      NC_DB=postgresql://prisma:prisma@postgres:5432/db
+      NC_AUTH_JWT_SECRET=XkDXpPjr3scXVNRM4BhYfR8aTF6htLNcZD9NKJqWKvJrj27rgp8huinsxGezeWXsdHgwQ6Eydiuna9SzS5kAVcKA2xhuu4ndpKBFK7pGQQ3eT8WYbQifqteEUCqnze3M
       
 
 volumes:
   event-bot-db:
+    driver: local
+  event-nocodb:
     driver: local
