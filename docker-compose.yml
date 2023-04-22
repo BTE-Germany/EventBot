@@ -31,9 +31,9 @@ services:
     ports:
       -  6970:8080
     environment:
-      NC_DB=postgresql://prisma:prisma@postgres:5432/db
-      NC_AUTH_JWT_SECRET=XkDXpPjr3scXVNRM4BhYfR8aTF6htLNcZD9NKJqWKvJrj27rgp8huinsxGezeWXsdHgwQ6Eydiuna9SzS5kAVcKA2xhuu4ndpKBFK7pGQQ3eT8WYbQifqteEUCqnze3M
-      
+      - NC_DB=postgresql://prisma:prisma@postgres:5432/db
+      - NC_AUTH_JWT_SECRET=XkDXpPjr3scXVNRM4BhYfR8aTF6htLNcZD9NKJqWKvJrj27rgp8huinsxGezeWXsdHgwQ6Eydiuna9SzS5kAVcKA2xhuu4ndpKBFK7pGQQ3eT8WYbQifqteEUCqnze3M
+
 
 volumes:
   event-bot-db:
