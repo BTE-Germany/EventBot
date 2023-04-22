@@ -20,9 +20,10 @@ services:
     environment:
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
-      - POSTGRES_DB=db
+      - POSTGRES_MULTIPLE_DATABASES=db,nocodb
     volumes: 
       - event-bot-db:/var/lib/postgresql/data
+      - ./PostgreSQL:/docker-entrypoint-initdb.d
   
   NoCoDB:
     image: nocodb/nocodb:latest
@@ -33,7 +34,7 @@ services:
     ports:
       -  6970:8080
     environment:
-      - NC_DB=pg://postgres:5432?u=prisma&p=prisma&d=db
+      - NC_DB=pg://postgres:5432?u=prisma&p=prisma&d=nocodb
       - NC_AUTH_JWT_SECRET=XkDXpPjr3scXVNRM4BhYfR8aTF6htLNcZD9NKJqWKvJrj27rgp8huinsxGezeWXsdHgwQ6Eydiuna9SzS5kAVcKA2xhuu4ndpKBFK7pGQQ3eT8WYbQifqteEUCqnze3M
 
 
