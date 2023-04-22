@@ -5,8 +5,8 @@
 | @fastify/cors       | perpetual      | MIT          | https://github.com/fastify/fastify-cors  | 8.2.1          | 8.2.1             | ^8.2.1          | Tomas Della Vedova - @delvedor (http://delved.org)       |
 | @prisma/client      | perpetual      | Apache-2.0   | https://github.com/prisma/prisma       | 4.13.0         | 4.13.0            | ^4.11.0         | Tim Suchanek <suchanek@prisma.io>                        |
 | axios               | perpetual      | MIT          | https://github.com/axios/axios           | 1.3.6          | 1.3.6             | ^1.3.4          | Matt Zabriskie                                           |
-| discord.js          | perpetual      | Apache-2.0   | https://github.com/discordjs/discord.js      | 14.9.0         | 14.9.0            | ^14.8.0         | n/a                                                      |
-| dotenv              | perpetual      | BSD-2-Clause | https://github.com/motdotla/dotenv             | 16.0.3         | 16.0.3            | ^16.0.3         | n/a                                                      |
+| discord.js          | perpetual      | Apache-2.0   | https://github.com/discordjs/discord.js      | 14.9.0         | 14.9.0            | ^14.8.0         | Noel Buechler                                                      |
+| dotenv              | perpetual      | BSD-2-Clause | https://github.com/motdotla/dotenv             | 16.0.3         | 16.0.3            | ^16.0.3         | Scott Motte                                                      |
 | fastify             | perpetual      | MIT          | https://github.com/fastify/fastify       | 4.15.0         | 4.15.0            | ^4.15.0         | Matteo Collina <hello@matteocollina.com>                 |
 | prisma              | perpetual      | Apache-2.0   | https://github.com/prisma/prisma         | 4.13.0         | 4.13.0            | ^4.11.0         | Tim Suchanek <suchanek@prisma.io>                        |
 | ts-node             | perpetual      | MIT          | https://github.com/TypeStrong/ts-node          | 10.9.1         | 10.9.1            | ^10.9.1         | Blake Embrey hello@blakeembrey.com http://blakeembrey.me |
