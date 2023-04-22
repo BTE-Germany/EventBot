@@ -26,12 +26,14 @@ services:
   
   NoCoDB:
     image: nocodb/nocodb:latest
+    depends_on:
+      - postgres
     volumes: 
       - event-nocodb:/usr/app/data/
     ports:
       -  6970:8080
     environment:
-      - NC_DB=postgresql://prisma:prisma@postgres:5432/db
+      - NC_DB=pg://postgres:5432?u=prisma&p=prisma&d=db
       - NC_AUTH_JWT_SECRET=XkDXpPjr3scXVNRM4BhYfR8aTF6htLNcZD9NKJqWKvJrj27rgp8huinsxGezeWXsdHgwQ6Eydiuna9SzS5kAVcKA2xhuu4ndpKBFK7pGQQ3eT8WYbQifqteEUCqnze3M
 
 
