@@ -68,7 +68,7 @@ module.exports = {
                   } - ${users[2]?.points}
                         
                         Run-ups:
-                        4. ${
+                        4 ${
                           guildMembers.find(
                             (member) => member.id === users[3]?.id
                           )?.username
@@ -76,7 +76,7 @@ module.exports = {
                     guildMembers.find((member) => member.id === users[3]?.id)
                       ?.discriminator
                   } - ${users[3]?.points}
-                        5. ${
+                        5 ${
                           guildMembers.find(
                             (member) => member.id === users[4]?.id
                           )?.username
