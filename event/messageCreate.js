@@ -48,13 +48,18 @@ module.exports = {
             })
             .then(async (obj) => {
               const user = args.author;
+              let dbUser = prisma.user.findUnique({
+                where: {
+                  id: user.id
+                }
+              })
               let embeds = [
                 {
                   title: obj.id,
                   description: "Koordinaten: " + obj.location,
                   url: "https://bte-germany.de",
                   author: {
-                    name: user.minecraft_id,
+                    name: dbUser.minecraft_id,
                   },
                 },
               ];

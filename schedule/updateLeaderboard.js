@@ -7,6 +7,7 @@ module.exports = {
       return {
         id: user.id.toString(),
         points: user.points,
+        minecraft_id: user.minecraft_id
       };
     });
     users = users.sort((a, b) => b.points - a.points);

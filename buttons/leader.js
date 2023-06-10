@@ -10,6 +10,7 @@ module.exports = {
             return {
                 id: user.id.toString(),
                 points: user.points,
+                minecraft_id: user.minecraft_id
             };
         });
         users = users.sort((a, b) => b.points - a.points);
@@ -27,19 +28,6 @@ module.exports = {
         users.forEach((user) => {
             points = points + user.points;
         });
-
-        const guildMembers = await client.guilds.cache
-            .get(process.env.GUILD_ID)
-            .members.fetch()
-            .then((members) =>
-                members.map((member) => {
-                    return {
-                        id: member.id,
-                        username: member.user.username,
-                        discriminator: member.user.discriminator,
-                    };
-                })
-            );
 
         let userlist = "";
         let increment = pageNum * 10 + 1;
