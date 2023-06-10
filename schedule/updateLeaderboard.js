@@ -32,7 +32,7 @@ module.exports = {
     let increment = 1;
     let userlist = "";
     users.forEach((user) => {
-      userlist += `${increment}. ${guildMembers.find((member) => member.id === user?.id)?.username}#${guildMembers.find((member) => member.id === users?.id)?.discriminator} - ${user.points} \n`
+      userlist += `${increment}. ${guildMembers.find((member) => member.id === user?.id)?.username}#${guildMembers.find((member) => member.id === user?.id)?.discriminator} - ${user.points} \n`
     });
     await client.channels.cache
       .get(process.env.LEADERBOARD_CHANNEL)
