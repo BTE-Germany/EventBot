@@ -43,14 +43,14 @@ module.exports = {
                 {
                   name: ":top: Leaderboard",
 
-                  value: `:one: ${
+                  value: `:first_place: ${
                     guildMembers.find((member) => member.id === users[0]?.id)
                       ?.username
                   }#${
                     guildMembers.find((member) => member.id === users[0]?.id)
                       ?.discriminator
                   } - ${users[0]?.points}
-                        :two: ${
+                        :second_place: ${
                           guildMembers.find(
                             (member) => member.id === users[1]?.id
                           )?.username
@@ -58,7 +58,7 @@ module.exports = {
                     guildMembers.find((member) => member.id === users[1]?.id)
                       ?.discriminator
                   } - ${users[1]?.points}
-                        :three: ${
+                        :third_place: ${
                           guildMembers.find(
                             (member) => member.id === users[2]?.id
                           )?.username

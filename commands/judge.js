@@ -196,8 +196,10 @@ module.exports = {
                   name: "Bewertung",
                   value: `Details: ${
                     (build.A + interaction.options.getInteger("details")) / 2
-                  }\nAufwand: ${
+                  }\nAufwand / Größe: ${
                     (build.B + interaction.options.getInteger("aufwand")) / 2
+                  }\n Grundpunkte: ${
+                      (build.base_points) ? "Ja" : "Nein"
                   }`,
                 },
               ],
