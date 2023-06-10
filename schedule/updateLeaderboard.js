@@ -29,12 +29,17 @@ module.exports = {
           };
         })
       );
+    let increment = 1;
+    let userlist = "";
+    users.forEach((user) => {
+      userlist += `${increment}. ${guildMembers.find((member) => member.id === user?.id)?.username}#${guildMembers.find((member) => member.id === users?.id)?.discriminator} - ${user.points} \n`
+    });
     await client.channels.cache
       .get(process.env.LEADERBOARD_CHANNEL)
       .messages.fetch(process.env.LEADERBOARD_MESSAGE)
       .then(async (message) => {
         message.edit({
-          content: null,
+          content: `${userlist}`,
           embeds: [
             {
               title: process.env.EVENT_NAME,
