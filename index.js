@@ -10,6 +10,7 @@ const prisma = new PrismaClient();
 const api = require("./api/api.js");
 
 const commands = [];
+const buttons = [];
 client.on("ready", () => {
   console.log(new Date().toLocaleString(), "Ready!");
 });
@@ -71,23 +72,47 @@ client.once("ready", async () => {
     }, data.time);
   }
 
+  const buttonFiles = fs
+      .readdirSync("./buttons")
+      .filter((file) => file.endsWith(".js"));
+  for (const file of buttonFiles) {
+    let data = require(`./buttons/${file}`);
+    buttons.push(data);
+  }
+
   await api.start();
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
-  const command = commands.find(
-    (command) => command.command.name === interaction.commandName
-  );
-  if (!command) return;
-  try {
-    await command.run(client, interaction, prisma);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
+  if (interaction.isCommand()) {
+    const command = commands.find(
+        (command) => command.command.name === interaction.commandName
+    );
+    if (!command) return;
+    try {
+      await command.run(client, interaction, prisma);
+    } catch (error) {
+      console.error(error);
+      await interaction.reply({
+        content: "There was an error while executing this command!",
+        ephemeral: true,
+      });
+    }
+  }
+  if (interaction.isButton()) {
+    const button = buttons.find(
+        (button) => interaction.customId.startsWith(button.button.name)
+    )
+    if(!button) return;
+    try {
+      await button.run(client, interaction, prisma);
+    } catch (error) {
+      console.error(error);
+      await interaction.reply({
+        content: "There was an error while executing this button!",
+        ephemeral: true,
+      });
+    }
   }
 });
 

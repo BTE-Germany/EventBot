@@ -29,83 +29,62 @@ module.exports = {
           };
         })
       );
-    let increment = 1;
-    let userlist = "";
-    users.forEach((user) => {
-      userlist += `${increment}. ${guildMembers.find((member) => member.id === user?.id)?.username}#${guildMembers.find((member) => member.id === user?.id)?.discriminator} - ${user.points} \n`
-    });
+
     await client.channels.cache
       .get(process.env.LEADERBOARD_CHANNEL)
       .messages.fetch(process.env.LEADERBOARD_MESSAGE)
       .then(async (message) => {
         message.edit({
-          content: `${userlist}`,
-          embeds: [
+          "content": null,
+          "embeds": [
             {
-              title: process.env.EVENT_NAME,
-              color: 10630453,
-              fields: [
+              "title": "Leaderboard",
+              "description": `
+              :first_place: ${guildMembers.find((member) => member.id === users[0]?.id) ?.username }#${guildMembers.find((member) => member.id === users[0]?.id)?.discriminator}  |  \`${users[0]?.points}\` \n
+              :second_place: ${guildMembers.find((member) => member.id === users[1]?.id) ?.username }#${guildMembers.find((member) => member.id === users[1]?.id)?.discriminator}  |  \`${users[1]?.points}\` \n
+              :third_place: ${guildMembers.find((member) => member.id === users[2]?.id) ?.username }#${guildMembers.find((member) => member.id === users[2]?.id)?.discriminator}  |  \`${users[2]?.points}\` \n
+              4. ${guildMembers.find((member) => member.id === users[3]?.id) ?.username }#${guildMembers.find((member) => member.id === users[3]?.id)?.discriminator}  |  \`${users[3]?.points}\` \n
+              5. ${guildMembers.find((member) => member.id === users[4]?.id) ?.username }#${guildMembers.find((member) => member.id === users[4]?.id)?.discriminator}  |  \`${users[4]?.points}\` \n
+              6. ${guildMembers.find((member) => member.id === users[5]?.id) ?.username }#${guildMembers.find((member) => member.id === users[5]?.id)?.discriminator}  |  \`${users[5]?.points}\` \n
+              7. ${guildMembers.find((member) => member.id === users[6]?.id) ?.username }#${guildMembers.find((member) => member.id === users[6]?.id)?.discriminator}  |  \`${users[6]?.points}\` \n
+              8. ${guildMembers.find((member) => member.id === users[7]?.id) ?.username }#${guildMembers.find((member) => member.id === users[7]?.id)?.discriminator}  |  \`${users[7]?.points}\` \n
+              9. ${guildMembers.find((member) => member.id === users[8]?.id) ?.username }#${guildMembers.find((member) => member.id === users[8]?.id)?.discriminator}  |  \`${users[8]?.points}\` \n
+              10. ${guildMembers.find((member) => member.id === users[9]?.id) ?.username }#${guildMembers.find((member) => member.id === users[9]?.id)?.discriminator}  |  \`${users[9]?.points}\``,
+              "color": 13697024,
+              "fields": [
                 {
-                  name: ":top: Leaderboard",
-
-                  value: `:first_place: ${
-                    guildMembers.find((member) => member.id === users[0]?.id)
-                      ?.username
-                  }#${
-                    guildMembers.find((member) => member.id === users[0]?.id)
-                      ?.discriminator
-                  } - ${users[0]?.points}
-                        :second_place: ${
-                          guildMembers.find(
-                            (member) => member.id === users[1]?.id
-                          )?.username
-                        }#${
-                    guildMembers.find((member) => member.id === users[1]?.id)
-                      ?.discriminator
-                  } - ${users[1]?.points}
-                        :third_place: ${
-                          guildMembers.find(
-                            (member) => member.id === users[2]?.id
-                          )?.username
-                        }#${
-                    guildMembers.find((member) => member.id === users[2]?.id)
-                      ?.discriminator
-                  } - ${users[2]?.points}
-                        
-                        Run-ups:
-                        :four: ${
-                          guildMembers.find(
-                            (member) => member.id === users[3]?.id
-                          )?.username
-                        }#${
-                    guildMembers.find((member) => member.id === users[3]?.id)
-                      ?.discriminator
-                  } - ${users[3]?.points}
-                        :five: ${
-                          guildMembers.find(
-                            (member) => member.id === users[4]?.id
-                          )?.username
-                        }#${
-                    guildMembers.find((member) => member.id === users[4]?.id)
-                      ?.discriminator
-                  } - ${users[4]?.points}`,
-                },
-                {
-                  name: "Statistik",
-                  value: `Builds gesamt: **${builds.length}**
-                        Registrierte Nutzer*innen: **${users.length}**
-                        Punkte gesamt: **${points}**`,
-                },
+                  "name": "Statistik",
+                  "value": `Builds gesamt: \`${builds.length}\` \n
+                  Registrierte Builder: \`${users.length}\` \n
+                  Punkte gesamt: \`${points}\``
+                }
               ],
-              footer: {
-                text: "Starte noch heute und kämpfe dich an die Spitze! Registrierung via /register",
+              "footer": {
+                "text": "Starte noch heute und kämpfe dich an die Spitze! Registrierung via /register"
               },
-              thumbnail: {
-                url: process.env.EVENT_IMG,
-              },
-            },
+              "thumbnail": {
+                "url": process.env.EVENT_IMG
+              }
+            }
           ],
-          attachments: [],
+          "attachments": [],
+          "components": [
+            {
+              "type": 1,
+              "components": [
+                {
+                  "style": 3,
+                  "label": `Nächste Seite`,
+                  "custom_id": `leader-1`,
+                  "disabled": false,
+                  "emoji": {
+                    "name": `➡`
+                  },
+                  "type": 2
+                }
+              ]
+            }
+          ]
         });
       });
   },
