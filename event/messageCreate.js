@@ -50,7 +50,7 @@ module.exports = {
               const user = args.author;
               let dbUser = prisma.user.findUnique({
                 where: {
-                  id: user.id
+                  id: args.author.id
                 }
               })
               let embeds = [
