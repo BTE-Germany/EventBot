@@ -40,16 +40,16 @@ module.exports = {
             {
               "title": "Leaderboard",
               "description": `
-              :first_place: ${guildMembers.find((member) => member.id === users[0]?.id) ?.username }#${guildMembers.find((member) => member.id === users[0]?.id)?.discriminator}  |  \`${users[0]?.points}\` \n
-              :second_place: ${guildMembers.find((member) => member.id === users[1]?.id) ?.username }#${guildMembers.find((member) => member.id === users[1]?.id)?.discriminator}  |  \`${users[1]?.points}\` \n
-              :third_place: ${guildMembers.find((member) => member.id === users[2]?.id) ?.username }#${guildMembers.find((member) => member.id === users[2]?.id)?.discriminator}  |  \`${users[2]?.points}\` \n
-              4. ${guildMembers.find((member) => member.id === users[3]?.id) ?.username }#${guildMembers.find((member) => member.id === users[3]?.id)?.discriminator}  |  \`${users[3]?.points}\` \n
-              5. ${guildMembers.find((member) => member.id === users[4]?.id) ?.username }#${guildMembers.find((member) => member.id === users[4]?.id)?.discriminator}  |  \`${users[4]?.points}\` \n
-              6. ${guildMembers.find((member) => member.id === users[5]?.id) ?.username }#${guildMembers.find((member) => member.id === users[5]?.id)?.discriminator}  |  \`${users[5]?.points}\` \n
-              7. ${guildMembers.find((member) => member.id === users[6]?.id) ?.username }#${guildMembers.find((member) => member.id === users[6]?.id)?.discriminator}  |  \`${users[6]?.points}\` \n
-              8. ${guildMembers.find((member) => member.id === users[7]?.id) ?.username }#${guildMembers.find((member) => member.id === users[7]?.id)?.discriminator}  |  \`${users[7]?.points}\` \n
-              9. ${guildMembers.find((member) => member.id === users[8]?.id) ?.username }#${guildMembers.find((member) => member.id === users[8]?.id)?.discriminator}  |  \`${users[8]?.points}\` \n
-              10. ${guildMembers.find((member) => member.id === users[9]?.id) ?.username }#${guildMembers.find((member) => member.id === users[9]?.id)?.discriminator}  |  \`${users[9]?.points}\``,
+              :first_place: ${users[0]?.minecraft_id}  |  \`${users[0]?.points}\` \n
+              :second_place: ${users[1]?.minecraft_id}  |  \`${users[1]?.points}\` \n
+              :third_place: ${users[2]?.minecraft_id}  |  \`${users[2]?.points}\` \n
+              4. ${users[3]?.minecraft_id}  |  \`${users[3]?.points}\` \n
+              5. ${users[4]?.minecraft_id}  |  \`${users[4]?.points}\` \n
+              6. ${users[5]?.minecraft_id}  |  \`${users[5]?.points}\` \n
+              7. ${users[6]?.minecraft_id}  |  \`${users[6]?.points}\` \n
+              8. ${users[7]?.minecraft_id}  |  \`${users[7]?.points}\` \n
+              9. ${users[8]?.minecraft_id}  |  \`${users[8]?.points}\` \n
+              10. ${users[9]?.minecraft_id}  |  \`${users[9]?.points}\``,
               "color": 13697024,
               "fields": [
                 {

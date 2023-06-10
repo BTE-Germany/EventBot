@@ -44,7 +44,7 @@ module.exports = {
         let userlist = "";
         let increment = pageNum * 10 + 1;
         users.forEach((user) => {
-            userlist += `${increment}. ${guildMembers.find((member) => member.id === user?.id) ?.username }#${guildMembers.find((member) => member.id === user?.id)?.discriminator}  |  \`${user.points}\` \n`
+            userlist += `${increment}. ${user.minecraft_id}  |  \`${user.points}\` \n`
         });
 
         interaction.reply({
