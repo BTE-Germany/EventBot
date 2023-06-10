@@ -50,12 +50,12 @@ module.exports = {
               const user = args.author;
               let dbUser = prisma.user.findUnique({
                 where: {
-                  id: args.author.id
+                  id: BigInt(args.author.id)
                 }
               })
               let embeds = [
                 {
-                  title: obj.id,
+                  title: `#${obj.id}`,
                   description: "Koordinaten: " + obj.location,
                   url: "https://bte-germany.de",
                   author: {
