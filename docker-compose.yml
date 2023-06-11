@@ -1,5 +1,6 @@
-version: "3"
+version: '3'
 services:
+
   bot:
     image: ghcr.io/bte-germany/eventbot:latest
     depends_on:
@@ -7,11 +8,12 @@ services:
     ports:
       - "6969:6969"
     env_file:
-      - .env
+    - .env
     environment:
       - DATABASE_URL=postgresql://prisma:prisma@postgres:5432/db
     links:
       - postgres
+    restart: on-failure
 
   postgres:
     image: postgres:14.1-alpine
@@ -20,21 +22,24 @@ services:
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
       - POSTGRES_MULTIPLE_DATABASES=db,nocodb
-    volumes:
+    volumes: 
       - event-bot-db:/var/lib/postgresql/data
       - ./PostgreSQL:/docker-entrypoint-initdb.d
-
+    restart: on-failure
+  
   NoCoDB:
     image: nocodb/nocodb:latest
     depends_on:
       - postgres
-    volumes:
+    volumes: 
       - event-nocodb:/usr/app/data/
     ports:
-      - 6970:8080
+      -  6970:8080
     environment:
       - NC_DB=pg://postgres:5432?u=prisma&p=prisma&d=nocodb
-      - NC_AUTH_JWT_SECRET=XkDXpPjr3scXVNRM4BhYfR8aTF6htLNcZD9NKJqWKvJrj27rgp8huinsxGezeWXsdHgwQ6Eydiuna9SzS5kAVcKA2xhuu4ndpKBFK7pGQQ3eT8WYbQifqteEUCqnze3M
+      #replace this witha random secret
+      - NC_AUTH_JWT_SECRET=SECRET
+
 
 volumes:
   event-bot-db:
