@@ -14,7 +14,7 @@ module.exports = {
             };
         });
         users = users.sort((a, b) => b.points - a.points);
-        users = users.slice(pageNum * 10, (pageNum * 10 + 1) + 10)
+        users = users.slice(pageNum * 10, pageNum * 10 + 10)
 
         if(users.length === 0) {
             interaction.reply({
