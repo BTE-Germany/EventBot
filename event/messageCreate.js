@@ -59,7 +59,7 @@ module.exports = {
                   description: "Koordinaten: " + obj.location,
                   url: "https://bte-germany.de",
                   author: {
-                    name: `${user.username}#${user.discriminator}`,
+                    name: `${user.username}`,
                   },
                 },
               ];
@@ -129,7 +129,7 @@ module.exports = {
               await args.delete();
               console.log(
                 new Date().toLocaleString(),
-                `Created new build by ${args.author.username}#${args.author.discriminator} with id ${obj.id}`
+                `Created new build by ${args.author.username} with id ${obj.id}`
               );
             });
           await prisma.user.update({
