@@ -70,7 +70,7 @@ module.exports = {
                 const buffer = await response.arrayBuffer();
                 let filetype = image.url.match(/\.([^/?#]+)(?=[?#]|$)/)[1];;
                 const blockBlobClient = containerClient.getBlockBlobClient(
-                  `${user.id}/${uuid}.${image.url.substring(filetype)}`
+                  `${user.id}/${uuid}.${filetype}`
                 );
                 await blockBlobClient.uploadData(buffer, buffer.byteLength);
                 embeds.push({
@@ -78,13 +78,13 @@ module.exports = {
                   image: {
                     url: `${process.env.CDN_URL}/${
                       process.env.CONTAINER_NAME
-                    }/${user.id}/${uuid}.${image.url.substring(filetype)}`,
+                    }/${user.id}/${uuid}.${filetype}`,
                   },
                 });
                 images.push(
                   `${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/${
                     user.id
-                  }/${uuid}.${image.url.substring(filetype)}`
+                  }/${uuid}.${filetype}`
                 );
               }
               await prisma.build.update({
