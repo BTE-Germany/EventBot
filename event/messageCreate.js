@@ -68,10 +68,9 @@ module.exports = {
                 let uuid = crypto.randomUUID();
                 const response = await fetch(image.url);
                 const buffer = await response.arrayBuffer();
+                let filetype = image.url.match(/\.([^/?#]+)(?=[?#]|$)/)[1];;
                 const blockBlobClient = containerClient.getBlockBlobClient(
-                  `${user.id}/${uuid}${image.url.substring(
-                    image.url.lastIndexOf(".")
-                  )}`
+                  `${user.id}/${uuid}.${image.url.substring(filetype)}`
                 );
                 await blockBlobClient.uploadData(buffer, buffer.byteLength);
                 embeds.push({
@@ -79,15 +78,13 @@ module.exports = {
                   image: {
                     url: `${process.env.CDN_URL}/${
                       process.env.CONTAINER_NAME
-                    }/${user.id}/${uuid}${image.url.substring(
-                      image.url.lastIndexOf(".")
-                    )}`,
+                    }/${user.id}/${uuid}.${image.url.substring(filetype)}`,
                   },
                 });
                 images.push(
                   `${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/${
                     user.id
-                  }/${uuid}${image.url.substring(image.url.lastIndexOf("."))}`
+                  }/${uuid}.${image.url.substring(filetype)}`
                 );
               }
               await prisma.build.update({
