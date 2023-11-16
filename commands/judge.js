@@ -112,7 +112,7 @@ module.exports = {
               url: "https://bte-germany.de",
               color: 16761344,
               author: {
-                name: `${User.username}#${User.discriminator}`,
+                name: `${User.username}`,
               },
             },
           ];
@@ -189,7 +189,7 @@ module.exports = {
               url: "https://bte-germany.de",
               color: 7119627,
               author: {
-                name: `${User.username}#${User.discriminator}`,
+                name: `${User.username}`,
               },
               fields: [
                 {
