@@ -25,8 +25,7 @@ module.exports = {
         members.map((member) => {
           return {
             id: member.id,
-            username: member.user.username,
-            discriminator: member.user.discriminator,
+            username: member.user.username
           };
         })
       );
