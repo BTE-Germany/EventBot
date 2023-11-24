@@ -32,7 +32,7 @@ module.exports = {
         let userlist = "";
         let increment = pageNum * 10 + 1;
         users.forEach((user) => {
-            userlist += `${increment}. ${user.minecraft_id}  |  \`${user.points}\` \n`
+            userlist += `${increment}. \`${user.minecraft_id}\`  |  ${user.points} Punkte \n`
         });
 
         interaction.reply({
