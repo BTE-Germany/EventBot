@@ -16,12 +16,12 @@ module.exports = {
   async execute(args) {
     if (args.author.id === args.client.user.id) return;
     if (args.channel.id === process.env.SUBMISSION_CHANNEL) {
-      const user = await prisma.user.findUnique({
+      const dbUser = await prisma.user.findUnique({
         where: {
           id: BigInt(args.author.id),
         },
       });
-      if (!user) {
+      if (!dbUser) {
         const botmessage = await args.channel.send({
           content: "You are not registered! Please register with `/register`.",
           messageReference: {
@@ -48,18 +48,13 @@ module.exports = {
             })
             .then(async (obj) => {
               const user = args.author;
-              let dbUser = prisma.user.findUnique({
-                where: {
-                  id: BigInt(args.author.id)
-                }
-              })
               let embeds = [
                 {
                   title: `#${obj.id}`,
                   description: "Koordinaten: " + obj.location,
                   url: "https://bte-germany.de",
                   author: {
-                    name: `${user.username}`,
+                    name: `${dbUser.minecraft_id}`,
                   },
                 },
               ];
@@ -129,7 +124,7 @@ module.exports = {
               await args.delete();
               console.log(
                 new Date().toLocaleString(),
-                `Created new build by ${args.author.username} with id ${obj.id}`
+                `Created new build by ${dbUser.minecraft_id} with id ${obj.id}`
               );
             });
           await prisma.user.update({
@@ -137,7 +132,7 @@ module.exports = {
               id: BigInt(args.author.id),
             },
             data: {
-              points: user.points + 10,
+              points: dbUser.points + 10,
             },
           });
         } else {
