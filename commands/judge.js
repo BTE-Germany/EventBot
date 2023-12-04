@@ -84,6 +84,11 @@ module.exports = {
           await interaction.reply("You already judged this build.");
           return;
         }
+        const user = await prisma.user.findUnique({
+          where: {
+            id: build.builder_id,
+          },
+        });
         if (build.judges?.length === 0) {
           const judges = [interaction.user.id.toString()];
           const base_points =
@@ -102,9 +107,6 @@ module.exports = {
             },
           });
           await interaction.reply("Build judged");
-          const User = await interaction.guild.members.cache.get(
-            build.builder_id.toString()
-          ).user;
           let embeds = [
             {
               title: `#${build.id.toString()}`,
@@ -112,7 +114,7 @@ module.exports = {
               url: "https://bte-germany.de",
               color: 16761344,
               author: {
-                name: `${User.username}`,
+                name: `${user.minecraft_id}`,
               },
             },
           ];
@@ -158,11 +160,6 @@ module.exports = {
               B: (build.B + interaction.options.getInteger("aufwand")) / 2,
             },
           });
-          const user = await prisma.user.findUnique({
-            where: {
-              id: build.builder_id,
-            },
-          });
           const base_points = build.base_points ? 0 : -10;
           await prisma.user.update({
             where: {
@@ -179,9 +176,6 @@ module.exports = {
           interaction.reply(
             "Build bewertet. Punkte wurden dem User gutgeschrieben. Du warst der 2. Judge. Somit wurde deine Entscheidung für base_points ignoriert."
           );
-          const User = await interaction.guild.members.cache.get(
-            build.builder_id.toString()
-          ).user;
           let embeds = [
             {
               title: `#${build.id.toString()}`,
@@ -189,7 +183,7 @@ module.exports = {
               url: "https://bte-germany.de",
               color: 7119627,
               author: {
-                name: `${User.username}`,
+                name: `${user.minecraft_id}`,
               },
               fields: [
                 {
