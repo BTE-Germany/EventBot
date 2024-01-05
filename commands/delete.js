@@ -59,7 +59,7 @@ module.exports = {
                     id: build.builder_id,
                   },
                   data: {
-                    points: user.points - 10,
+                    points: user.points - 5,
                   },
                 });
                 await interaction.reply({
@@ -97,7 +97,7 @@ module.exports = {
                     },
                   })
                   .then(async (user) => {
-                    let basepoints = build ? 10 : 0;
+                    let basepoints = build.base_points ? 5 : 0;
                     await prisma.user.update({
                       where: {
                         id: build.builder_id,

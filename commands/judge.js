@@ -160,7 +160,7 @@ module.exports = {
               B: (build.B + interaction.options.getInteger("aufwand")) / 2,
             },
           });
-          const base_points = build.base_points ? 0 : -10;
+          const base_points = build.base_points ? 0 : -5;
           await prisma.user.update({
             where: {
               id: build.builder_id,

@@ -63,7 +63,7 @@ module.exports = {
                 let uuid = crypto.randomUUID();
                 const response = await fetch(image.url);
                 const buffer = await response.arrayBuffer();
-                let filetype = image.url.match(/\.([^/?#]+)(?=[?#]|$)/)[1];;
+                let filetype = image.url.match(/\.([^/?#]+)(?=[?#]|$)/)[1];
                 const blockBlobClient = containerClient.getBlockBlobClient(
                   `${user.id}/${uuid}.${filetype}`
                 );
@@ -132,7 +132,7 @@ module.exports = {
               id: BigInt(args.author.id),
             },
             data: {
-              points: dbUser.points + 10,
+              points: dbUser.points + 5,
             },
           });
         } else {
