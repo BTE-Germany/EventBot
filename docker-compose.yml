@@ -18,31 +18,18 @@ services:
   postgres:
     image: postgres:14.1-alpine
     restart: always
+    ports:
+      -  "6970:5432"
     environment:
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
-      - POSTGRES_MULTIPLE_DATABASES=db,nocodb
+      - POSTGRES_MULTIPLE_DATABASES=db
     volumes: 
       - event-bot-db:/var/lib/postgresql/data
       - ./PostgreSQL:/docker-entrypoint-initdb.d
     restart: on-failure
-  
-  NoCoDB:
-    image: nocodb/nocodb:latest
-    depends_on:
-      - postgres
-    volumes: 
-      - event-nocodb:/usr/app/data/
-    ports:
-      -  6970:8080
-    environment:
-      - NC_DB=pg://postgres:5432?u=prisma&p=prisma&d=nocodb
-      #replace this witha random secret
-      - NC_AUTH_JWT_SECRET=SECRET
 
 
 volumes:
   event-bot-db:
-    driver: local
-  event-nocodb:
     driver: local
