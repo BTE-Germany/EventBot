@@ -3,7 +3,7 @@ require("dotenv").config();
 module.exports = {
   command: {
     name: "cleardatabase",
-    description: "This IRRECOVERABLY deletes the contents of the BUILD table and RESETS all points to 0 (all users are preserved)",
+    description: "This PERMANENTLY deletes the contents of the BUILD table and RESETS all points (all users are saved)",
     options: [
       {
         name: "sure",
@@ -34,7 +34,6 @@ module.exports = {
         });
       }
       if (interaction.options.getBoolean("backup")) {
-        // Backup the database as a json and send it to the user in the message as a file
         const backup = JSON.stringify(builds);
         const fs = require("fs");
         fs.writeFileSync("backup.json", backup);
@@ -42,6 +41,7 @@ module.exports = {
           content: "Here is your backup.",
           files: ["backup.json"],
         });
+        fs.rmSync("backup.json");
       }
     });
     prisma.build.deleteMany().then(() => {
