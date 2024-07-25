@@ -26,7 +26,7 @@ module.exports = {
     ],
   },
   run: async (client, interaction, prisma) => {
-    if(interaction.getBoolean("sure") === false) {
+    if(interaction.options.getBoolean("sure") === false) {
       return interaction.reply({
         content: "You need to be sure to clear the database.",
         ephemeral: true,
@@ -42,8 +42,8 @@ module.exports = {
       });
     }
 
-    const reason = interaction.getString("reason");
-    const backup = interaction.getBoolean("backup");
+    const reason = interaction.options.getString("reason");
+    const backup = interaction.options.getBoolean("backup");
 
     if (backup) {
       const backup = JSON.stringify(builds);
