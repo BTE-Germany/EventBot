@@ -32,36 +32,40 @@ module.exports = {
         ephemeral: true,
       });
     }
-    prisma.build.findMany().then((builds) => {
-      if (builds.length === 0) {
-        return interaction.reply({
-          content: "The database is already empty.",
-          ephemeral: true,
-        });
-      }
-      if (interaction.options.getBoolean("backup")) {
-        const backup = JSON.stringify(builds);
-        const fs = require("fs");
-        fs.writeFileSync("backup.json", backup);
-        interaction.user.send({
-          content: "Here is your backup.",
-          files: ["backup.json"],
-        });
-        fs.rmSync("backup.json");
-      }
-    });
-    prisma.build.deleteMany().then(() => {
-      prisma.$executeRaw`ALTER SEQUENCE "Build_id_seq" RESTART WITH 1;`;
-      prisma.user.updateMany({
-        data: {
-          points: 0,
-        },
-      }).then(() => {
-        interaction.reply({
-          content: "Done.",
-          ephemeral: true,
-        });
+
+    const builds = await prisma.build.findMany();
+    
+    if (builds.length === 0) {
+      return interaction.reply({
+        content: "The database is already empty.",
+        ephemeral: true,
       });
+    }
+
+    const reason = interaction.getString("reason");
+    const backup = interaction.getBoolean("backup");
+
+    if (backup) {
+      const backup = JSON.stringify(builds);
+      const fs = require("fs");
+      fs.writeFileSync("backup.json", backup);
+      interaction.user.send({
+        content: "Here is your backup.",
+        files: ["backup.json"],
+      });
+      fs.rmSync("backup.json");
+    }
+
+    await prisma.build.deleteMany();
+    await prisma.$executeRaw`ALTER SEQUENCE "Build_id_seq" RESTART WITH 1;`;
+    await prisma.user.updateMany({
+      data: {
+        points: 0,
+      },
+    });
+
+    interaction.reply({
+      content: "Done. Reason: " + reason
     });
   }
 };
