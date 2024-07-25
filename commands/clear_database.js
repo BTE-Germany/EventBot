@@ -45,6 +45,7 @@ module.exports = {
       }
     });
     prisma.build.deleteMany().then(() => {
+      prisma.$executeRaw`ALTER SEQUENCE "Build_id_seq" RESTART WITH 1;`;
       prisma.user.updateMany({
         data: {
           points: 0,
