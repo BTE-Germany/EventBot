@@ -16,12 +16,6 @@ module.exports = {
         description: "The reason for deleting the database.",
         type: 3,
         required: true,
-      },
-      {
-        name: "backup",
-        description: "Do you need a backup of the database?",
-        type: 5,
-        required: true,
       }
     ],
   },
@@ -43,18 +37,6 @@ module.exports = {
     }
 
     const reason = interaction.options.getString("reason");
-    const backup = interaction.options.getBoolean("backup");
-
-    if (backup) {
-      const backup = JSON.stringify(builds);
-      const fs = require("fs");
-      fs.writeFileSync("backup.json", backup);
-      interaction.user.send({
-        content: "Here is your backup.",
-        files: ["backup.json"],
-      });
-      fs.rmSync("backup.json");
-    }
 
     await prisma.build.deleteMany();
     await prisma.$executeRaw`ALTER SEQUENCE "Build_id_seq" RESTART WITH 1;`;
