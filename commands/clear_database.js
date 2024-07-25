@@ -8,7 +8,7 @@ module.exports = {
       {
         name: "sure",
         description: "Are you SURE you want to clear the database?",
-        type: 3,
+        type: 5,
         required: true,
       },
       {
@@ -26,6 +26,12 @@ module.exports = {
     ],
   },
   run: async (client, interaction, prisma) => {
+    if(interaction.getBoolean("sure") === false) {
+      return interaction.reply({
+        content: "You need to be sure to clear the database.",
+        ephemeral: true,
+      });
+    }
     prisma.build.findMany().then((builds) => {
       if (builds.length === 0) {
         return interaction.reply({
