@@ -12,7 +12,7 @@ module.exports = {
       let data = require(`./endpoint/${file}`);
       console.log(
         new Date().toLocaleString(),
-        `Registering route: /${data.method} ${data.path}`
+        `Route registriert: /${data.method} ${data.path}`
       );
       fastify.route(data);
     }

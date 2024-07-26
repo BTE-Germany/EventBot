@@ -25,13 +25,13 @@ for (const file of eventFiles) {
     if (event.once) {
       console.log(
         new Date().toLocaleString(),
-        `Registering event: ${event.name}`
+        `Event registriert: ${event.name}`
       );
       client.once(event.name, (...args) => event.execute(...args));
     } else {
       console.log(
         new Date().toLocaleString(),
-        `Registering event: ${event.name}`
+        `Event registriert: ${event.name}`
       );
       client.on(event.name, (...args) => event.execute(...args));
     }
@@ -52,7 +52,7 @@ client.once("ready", async () => {
       .then(() =>
         console.log(
           new Date().toLocaleString(),
-          `Created command /${data.command.name}`
+          `Command registriert: /${data.command.name}`
         )
       )
       .catch(console.error);
@@ -65,7 +65,7 @@ client.once("ready", async () => {
     let data = require(`./schedule/${file}`);
     console.log(
       new Date().toLocaleString(),
-      `registering schedule: ${file} (${data.time}ms)`
+      `Schedule registriert: ${file} (${data.time}ms)`
     );
     setInterval(() => {
       data.run(client, prisma);
@@ -94,7 +94,7 @@ client.on("interactionCreate", async (interaction) => {
     } catch (error) {
       console.error(error);
       await interaction.reply({
-        content: "There was an error while executing this command!",
+        content: "Beim Registrieren dieses Befehls ist ein Fehler aufgetreten!",
         ephemeral: true,
       });
     }
@@ -109,7 +109,7 @@ client.on("interactionCreate", async (interaction) => {
     } catch (error) {
       console.error(error);
       await interaction.reply({
-        content: "There was an error while executing this button!",
+        content: "Beim Ausführen dieser Schaltfläche ist ein Fehler aufgetreten! ",
         ephemeral: true,
       });
     }

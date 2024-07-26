@@ -71,14 +71,12 @@ module.exports = {
                 embeds.push({
                   url: "https://bte-germany.de",
                   image: {
-                    url: `${process.env.CDN_URL}/${
-                      process.env.CONTAINER_NAME
-                    }/${user.id}/${uuid}.${filetype}`,
+                    url: `${process.env.CDN_URL}/${process.env.CONTAINER_NAME
+                      }/${user.id}/${uuid}.${filetype}`,
                   },
                 });
                 images.push(
-                  `${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/${
-                    user.id
+                  `${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/${user.id
                   }/${uuid}.${filetype}`
                 );
               }
@@ -124,7 +122,7 @@ module.exports = {
               await args.delete();
               console.log(
                 new Date().toLocaleString(),
-                `Created new build by ${dbUser.minecraft_id} with id ${obj.id}`
+                `Neuer Build erstellt von ${dbUser.minecraft_id} mit der ID ${obj.id}`
               );
             });
           await prisma.user.update({

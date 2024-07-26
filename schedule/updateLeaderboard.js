@@ -1,7 +1,7 @@
 module.exports = {
   time: 300000,
   run: async (client, prisma) => {
-    console.log(new Date().toLocaleString(), "Updating leaderboard...");
+    console.log(new Date().toLocaleString(), "Leaderboard wird geupdated...");
     let users = await prisma.user.findMany();
     users = users.map((user) => {
       return {

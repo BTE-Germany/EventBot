@@ -7,13 +7,13 @@ module.exports = {
     options: [
       {
         name: "id",
-        description: "The ID of the build you want to delete.",
+        description: "Die ID des zu löschenden Builds.",
         type: 4,
         required: true,
       },
       {
         name: "reason",
-        description: "The reason for deleting the build.",
+        description: "Der Grund für die Löschung des Builds.",
         type: 3,
         required: true,
       },
@@ -29,7 +29,7 @@ module.exports = {
       .then(async (build) => {
         if (!build) {
           await interaction.reply({
-            content: "This build does not exist!",
+            content: "Dieses Build existiert nicht!",
             ephemeral: true,
           });
         } else {
@@ -64,14 +64,13 @@ module.exports = {
                 });
                 await interaction.reply({
                   content:
-                    "Build deleted with reason: " +
+                    "Build mit folgendem Grund gelöscht: " +
                     interaction.options.getString("reason"),
                 });
                 console.log(
                   new Date().toLocaleString(),
-                  `Judge ${interaction.member.user.id} deleted build ${
-                    build.id
-                  } with reason: ${interaction.options.getString("reason")}`
+                  `Judge ${interaction.member.user.id} hat build ${build.id
+                  } mit folgendem Grund gelöscht: ${interaction.options.getString("reason")}`
                 );
               });
           } else {
@@ -110,7 +109,7 @@ module.exports = {
               });
             await interaction.reply({
               content:
-                "Build deleted with reason: " +
+                "Build mit folgendem Grund gelöscht: " +
                 interaction.options.getString("reason"),
             });
           }

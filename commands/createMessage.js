@@ -1,11 +1,11 @@
 module.exports = {
   command: {
     name: "createmsg",
-    description: "Creates a message for the leaderboard channel",
+    description: "Erzeugt eine Nachricht für den Leaderboard-Kanal",
   },
   run: async (client, interaction, prisma) => {
     interaction.reply({
-      content: "Done.",
+      content: "Ok.",
       ephemeral: true,
     });
     interaction.channel.send(

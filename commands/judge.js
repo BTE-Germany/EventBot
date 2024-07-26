@@ -1,17 +1,17 @@
 module.exports = {
   command: {
     name: "judge",
-    description: "Judge a build!",
+    description: "Bewerte ein Build!",
     options: [
       {
         name: "id",
-        description: "The ID of the build you want to delete.",
+        description: "Die ID des zu beurteilenden Builds.",
         type: 4,
         required: true,
       },
       {
         name: "details",
-        description: "Points for details",
+        description: "Punkte für Details",
         type: 4,
         choices: [
           { name: "1", value: 1 },
@@ -77,11 +77,10 @@ module.exports = {
         },
       });
       if (!build) {
-        await interaction.reply("Build not found.");
+        await interaction.reply("Build nicht gefunden.");
       } else {
         if (build.judges.includes(interaction.member.user.id.toString())) {
-          //already judged this build
-          await interaction.reply("You already judged this build.");
+          await interaction.reply("Du hast dieses Build bereits bewertet.");
           return;
         }
         const user = await prisma.user.findUnique({
@@ -106,7 +105,7 @@ module.exports = {
               base_points: base_points,
             },
           });
-          await interaction.reply("Build judged");
+          await interaction.reply("Build bewertet. Du warst der 1. Judge. Deine Entscheidung für die Grundpunkte wurde übernommen.");
           let embeds = [
             {
               title: `#${build.id.toString()}`,
@@ -137,13 +136,12 @@ module.exports = {
             });
           console.log(
             new Date().toLocaleString(),
-            `Judge ${interaction.member.user.id} judged build ${
-              build.id
-            } as ${interaction.options.getInteger(
+            `Judge ${interaction.member.user.id} hat build ${build.id
+            } als ${interaction.options.getInteger(
               "details"
             )}/${interaction.options.getInteger(
               "aufwand"
-            )}. Base_points: ${base_points}. 1/2 judges.`
+            )} bewertet. Grundpunkte: ${base_points}. 1/2 judges.`
           );
           return;
         }
@@ -174,7 +172,7 @@ module.exports = {
             },
           });
           interaction.reply(
-            "Build bewertet. Punkte wurden dem User gutgeschrieben. Du warst der 2. Judge. Somit wurde deine Entscheidung für base_points ignoriert."
+            "Build bewertet. Punkte wurden dem User gutgeschrieben. Du warst der 2. Judge. Somit wurde deine Entscheidung für die Grundpunkte ignoriert."
           );
           let embeds = [
             {
@@ -188,13 +186,10 @@ module.exports = {
               fields: [
                 {
                   name: "Bewertung",
-                  value: `Details: ${
-                    (build.A + interaction.options.getInteger("details")) / 2
-                  }\nAufwand / Größe: ${
-                    (build.B + interaction.options.getInteger("aufwand")) / 2
-                  }\n Grundpunkte: ${
-                      (build.base_points) ? "Ja" : "Nein"
-                  }`,
+                  value: `Details: ${(build.A + interaction.options.getInteger("details")) / 2
+                    }\nAufwand / Größe: ${(build.B + interaction.options.getInteger("aufwand")) / 2
+                    }\n Grundpunkte: ${(build.base_points) ? "Ja" : "Nein"
+                    }`,
                 },
               ],
             },
@@ -227,11 +222,10 @@ module.exports = {
             });
           console.log(
             new Date().toLocaleString(),
-            `Judge ${interaction.member.user.id} judged build ${
-              build.id
-            } as ${interaction.options.getInteger(
+            `Judge ${interaction.member.user.id} hat build ${build.id
+            } alss ${interaction.options.getInteger(
               "details"
-            )}/${interaction.options.getInteger("aufwand")}. 2/2 judges.`
+            )}/${interaction.options.getInteger("aufwand")} bewertet. 2/2 judges.`
           );
           return;
         }

@@ -21,7 +21,7 @@ module.exports = {
       })
       .then(async (user) => {
         if (user) {
-          await interaction.reply({content: "Du bist bereits registriert.", ephemeral: true});
+          await interaction.reply({ content: "Du bist bereits registriert.", ephemeral: true });
         } else {
           prisma.user
             .create({
@@ -31,18 +31,17 @@ module.exports = {
               },
             })
             .then(async () => {
-              await interaction.reply({content: "Du wurdest erfolgreich registriert.", ephemeral: true});
+              await interaction.reply({ content: "Du wurdest erfolgreich registriert.", ephemeral: true });
               console.log(
                 new Date().toLocaleString(),
-                `Registered ${interaction.member.user.tag} (${
-                  interaction.member.user.id
+                `${interaction.member.user.tag} registriert (${interaction.member.user.id
                 }) as ${interaction.options.getString("minecraft")}`
               );
             })
             .catch(async (e) => {
               console.log(e);
-              console.log("Error while creating user.");
-              interaction.reply({content: "Du bist bereits registriert.", ephemeral: true});
+              console.log("Fehler beim Anlegen eines Benutzers.");
+              interaction.reply({ content: "Du bist bereits registriert.", ephemeral: true });
             });
         }
       });

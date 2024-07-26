@@ -3,32 +3,32 @@ require("dotenv").config();
 module.exports = {
   command: {
     name: "cleardatabase",
-    description: "This PERMANENTLY deletes the contents of the BUILD table and RESETS all points (all users are saved)",
+    description: "Löscht PERMANENT den Inhalt der BUILD-Tabelle und setzt alle Punkte auf 0.",
     options: [
       {
         name: "sure",
-        description: "Are you SURE you want to clear the database?",
+        description: "Bist du sicher, dass du die Datenbank löschen willst?",
         type: 5,
         required: true,
       },
       {
         name: "reason",
-        description: "The reason for deleting the database.",
+        description: "Grund für die Löschung der Datenbank.",
         type: 3,
         required: true,
       }
     ],
   },
   run: async (client, interaction, prisma) => {
-    if(interaction.options.getBoolean("sure") === false) {
+    if (interaction.options.getBoolean("sure") === false) {
       return interaction.reply({
-        content: "You need to be sure to clear the database.",
+        content: "Du musst sicherstellen, dass du die Datenbank wirklich löschen möchtest.",
         ephemeral: true,
       });
     }
 
     const builds = await prisma.build.findMany();
-    
+
     if (builds.length === 0) {
       return interaction.reply({
         content: "The database is already empty.",
@@ -47,7 +47,7 @@ module.exports = {
     });
 
     interaction.reply({
-      content: "Done. Reason: " + reason
+      content: "BUILD-Tabelle geleert. Alle Punkte auf 0 zurückgesetzt. Reason: " + reason
     });
   }
 };
