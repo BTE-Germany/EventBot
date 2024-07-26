@@ -12,4 +12,3 @@
 | ts-node             | perpetual      | MIT          | https://github.com/TypeStrong/ts-node          | 10.9.1         | 10.9.1            | ^10.9.1         | Blake Embrey hello@blakeembrey.com http://blakeembrey.me |
 | typescript          | perpetual      | Apache-2.0   | https://github.com/Microsoft/TypeScript  | 5.0.4          | 5.0.4             | ^5.0.2          | Microsoft Corp.                                          |
 | nodemon             | perpetual      | MIT          | https://github.com/remy/nodemon          | 2.0.22         | 2.0.22            | ^2.0.22         | Remy Sharp https://github.com/remy                       |
-
