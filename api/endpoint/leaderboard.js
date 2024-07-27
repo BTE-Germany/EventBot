@@ -7,6 +7,7 @@ module.exports = {
   handler: async (request, reply) => {
     let users = await prisma.user.findMany();
     users = users.sort((a, b) => b.points - a.points);
+    users = users.filter((user) => user.points > 0);
     const builds = await prisma.build.findMany();
     let points = 0;
     users.forEach((user) => {
