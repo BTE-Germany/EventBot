@@ -10,7 +10,7 @@ const containerClient = blobServiceClient.getContainerClient(
 
 module.exports = {
   command: {
-    name: "cleardatabase",
+    name: "clearimages",
     description: "Löscht PERMANENT den Inhalt des Bild-Speichers",
     options: [
       {
