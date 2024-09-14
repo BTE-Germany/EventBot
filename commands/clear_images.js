@@ -36,16 +36,25 @@ module.exports = {
     }
 
     const blobs = containerClient.listBlobsFlat();
-    console.log(blobs)
-    let i = 0;
-    for await (const blob of blobs) {
-      if(blob.name.startsWith("wichtig/")) return;
-      console.log(`Blob ${i++}: ${blob.name}`);
-      await containerClient.deleteBlob(blob.name, {deleteSnapshots: "include"});
-    }
+    const i = 0;
+    try {
+      for await (const blob of blobs) {
+        if (!blob.name.startsWith("wichtig/")) { // Do not delete important files
+          i++;
+          await containerClient.deleteBlob(blob.name, { deleteSnapshots: "include" });
+        }
+      }
 
-    return interaction.reply({
-      content: `Die Gesamtheit von https://${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/ wurde geleert. Grund: ${interaction.options.getString("reason")}`,
-    });
+      interaction.reply({
+        content: `Die Gesamtheit von https://${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/ wurde geleert. ${i} Dateien. Grund: ${interaction.options.getString("reason")}`,
+      });
+    }
+    catch (error) {
+      console.error(error);
+      interaction.reply({
+        content: `Fehler beim Löschen des Speichers: ${error.message}`,
+        ephemeral: true,
+      });
+    }
   }
-};
+}
