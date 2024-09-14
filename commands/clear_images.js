@@ -37,6 +37,7 @@ module.exports = {
 
     const blobs = containerClient.listBlobsFlat();
     console.log(blobs)
+    let i = 0;
     for await (const blob of blobs) {
       if(blob.name.startsWith("wichtig/")) return;
       console.log(`Blob ${i++}: ${blob.name}`);
