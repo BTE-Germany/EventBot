@@ -46,7 +46,7 @@ module.exports = {
       }
 
       interaction.reply({
-        content: `Die Gesamtheit von https://${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/ wurde geleert. ${i} Dateien. Grund: ${interaction.options.getString("reason")}`,
+        content: `Die Gesamtheit von ${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/ wurde geleert. ${i} Dateien. Grund: ${interaction.options.getString("reason")}`,
       });
     }
     catch (error) {
