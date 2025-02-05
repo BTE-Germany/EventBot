@@ -6,8 +6,11 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY ["package.json", "./"]
 
+RUN apk add --no-cache openssl
 RUN npm install --production
 RUN npx prisma generate
+
+
 
 COPY . .
 EXPOSE 6969
