@@ -15,6 +15,8 @@ module.exports = {
 
       // Fetch more messages if needed
       while (buildMessages.size < builds.length) {
+        let lastMessageId = buildMessages.last().id;
+        
         const moreMessages = await client.channels.cache
           .get(process.env.SUBMISSION_CHANNEL)
           .messages.fetch({ limit: 100, before: lastMessageId });
