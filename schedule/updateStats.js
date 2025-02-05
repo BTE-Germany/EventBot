@@ -28,5 +28,7 @@ module.exports = {
         users: users,
       }),
     });
+
+    console.log(new Date().toLocaleString(), "Stats wurden geupdated...");
   },
 };
