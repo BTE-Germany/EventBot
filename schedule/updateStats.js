@@ -28,10 +28,19 @@ module.exports = {
       }
 
       builds = builds.map((build) => {
-        let message = buildMessages.get(build.message_id);
+        let message = buildMessages.get(build.message);
         if (!message) return;
         build.date = message.createdTimestamp;
-        return build;
+        return {
+          id: build.id,
+          location: build.location,
+          A: build.A,
+          B: build.B,
+          base_points: build.base_points,
+          builder_id: toString(build.builder_id),
+          judges: build.judges,
+          images: build.images,
+        };
       });
 
       console.log(
@@ -39,18 +48,9 @@ module.exports = {
         "Stats - Builds wurden geladen..."
       );
 
-      // Sort the builds by date
-      builds = builds.sort((a, b) => a.date - b.date);
-
       users = users.map((user) => ({
         ...user,
         id: user.id.toString(),
-      }));
-
-      builds = builds.map((build) => ({
-        ...build,
-        message: build.message.toString(),
-        judge_msg: build.judge_msg.toString(),
       }));
 
       // Send to webhook
