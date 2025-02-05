@@ -10,8 +10,8 @@ module.exports = {
 
       // Get every build message and extract the date of creation and then add it to the builds array
       let buildMessages = await client.channels.cache
-        .get(process.env.BUILD_CHANNEL)
-        .messages.fetch({ limit: 250 });
+        .get(process.env.SUBMISSION_CHANNEL)
+        .messages.fetch({ limit: builds.length + 1 });
 
       builds = builds.map((build) => {
         let message = buildMessages.get(build.message_id);
