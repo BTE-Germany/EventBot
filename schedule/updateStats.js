@@ -1,6 +1,7 @@
 module.exports = {
   time: 3000,
   run: async (client, prisma) => {
+    return; // Disable this schedule
     console.log(new Date().toLocaleString(), "Stats werden geupdated...");
     // Get all users from the database
     let users = await prisma.user.findMany();
