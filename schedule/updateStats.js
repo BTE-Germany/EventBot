@@ -1,7 +1,7 @@
 module.exports = {
   time: 3000,
   run: async (client, prisma) => {
-    return; // Disable this schedule
+     // Disable this schedule
     console.log(new Date().toLocaleString(), "Stats werden geupdated...");
     // Get all users from the database
     let users = await prisma.user.findMany();
@@ -16,12 +16,14 @@ module.exports = {
         return build;
       });
 
+      console.log(new Date().toLocaleString(), "Stats - Builds wurden geladen...");
+
       //sort the builds by date
       builds = await Promise.all(builds);
       builds = builds.sort((a, b) => a.date - b.date);
 
       //send to webhook
-      await fetch(process.env.WEBHOOK_URL, {
+      fetch(process.env.WEBHOOK_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -30,7 +32,10 @@ module.exports = {
           builds: builds,
           users: users,
         }),
+      }).then((res) => {
+        console.log(new Date().toLocaleString(), "Stats - Webhook wurde gesendet...");
       });
+      
     } catch (error) {
       console.log(error);
     }
