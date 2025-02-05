@@ -1,5 +1,5 @@
 module.exports = {
-  time: 300000,
+  time: 3000,
   run: async (client, prisma) => {
     // Get all users from the database
     let users = await prisma.user.findMany();
