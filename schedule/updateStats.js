@@ -11,15 +11,25 @@ module.exports = {
       // Get every build message and extract the date of creation and then add it to the builds array
       let buildMessages = await client.channels.cache
         .get(process.env.SUBMISSION_CHANNEL)
-        .messages.fetch({ limit: builds.length + 1 });
+        .messages.fetch({ limit: 100 });
+
+      // Fetch more messages if needed
+      while (buildMessages.size < builds.length) {
+        const moreMessages = await client.channels.cache
+          .get(process.env.SUBMISSION_CHANNEL)
+          .messages.fetch({ limit: 100, before: lastMessageId });
+
+        if (moreMessages.size === 0) break;
+
+        buildMessages = buildMessages.concat(moreMessages);
+        lastMessageId = moreMessages.last().id;
+      }
 
       builds = builds.map((build) => {
         let message = buildMessages.get(build.message_id);
         if (!message) return;
-        return {
-          date: message.createdTimestamp,
-          user: build.user_id,
-        };
+        build.date = message.createdTimestamp;
+        return build;
       });
 
       console.log(
