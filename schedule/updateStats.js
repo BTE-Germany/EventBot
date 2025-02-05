@@ -6,29 +6,33 @@ module.exports = {
     let users = await prisma.user.findMany();
     let builds = await prisma.build.findMany();
     //get every build message and extract the date of creation and then add it to the builds array
-    builds = await builds.map(async (build) => {
-      let buildMessage = await client.channels.cache
-        .get(process.env.SUBMISSION_CHANNEL)
-        .messages.fetch(build.message);
-      build["date"] = buildMessage.createdTimestamp;
-      return build;
-    });
+    try {
+      builds = await builds.map(async (build) => {
+        let buildMessage = await client.channels.cache
+          .get(process.env.SUBMISSION_CHANNEL)
+          .messages.fetch(build.message);
+        build["date"] = buildMessage.createdTimestamp;
+        return build;
+      });
 
-    //sort the builds by date
-    builds = await Promise.all(builds);
-    builds = builds.sort((a, b) => a.date - b.date);
+      //sort the builds by date
+      builds = await Promise.all(builds);
+      builds = builds.sort((a, b) => a.date - b.date);
 
-    //send to webhook
-    await fetch(process.env.WEBHOOK_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        builds: builds,
-        users: users,
-      }),
-    });
+      //send to webhook
+      await fetch(process.env.WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          builds: builds,
+          users: users,
+        }),
+      });
+    } catch (error) {
+      console.log(error);
+    }
 
     console.log(new Date().toLocaleString(), "Stats wurden geupdated...");
   },
