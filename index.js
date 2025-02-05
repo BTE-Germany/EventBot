@@ -68,7 +68,11 @@ client.once("ready", async () => {
       `Schedule registriert: ${file} (${data.time}ms)`
     );
     setInterval(() => {
-      data.run(client, prisma);
+      try {
+        data.run(client, prisma);
+      } catch (error) {
+        console.error(error);
+      }
     }, data.time);
   }
 
