@@ -50,7 +50,8 @@ module.exports = {
       builds = builds.map((build) => ({
         ...build,
         id: build.id.toString(),
-        message_id: build.message_id.toString(),
+        message: build.message.toString(),
+        judge_msg: build.judge_msg.toString(),
       }));
 
       // Send to webhook
