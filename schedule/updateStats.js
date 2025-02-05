@@ -16,7 +16,7 @@ module.exports = {
       // Fetch more messages if needed
       while (buildMessages.size < builds.length) {
         let lastMessageId = buildMessages.last().id;
-        
+
         const moreMessages = await client.channels.cache
           .get(process.env.SUBMISSION_CHANNEL)
           .messages.fetch({ limit: 100, before: lastMessageId });
@@ -41,6 +41,17 @@ module.exports = {
 
       // Sort the builds by date
       builds = builds.sort((a, b) => a.date - b.date);
+
+      users = users.map((user) => ({
+        ...user,
+        id: user.id.toString(),
+      }));
+
+      builds = builds.map((build) => ({
+        ...build,
+        id: build.id.toString(),
+        message_id: build.message_id.toString(),
+      }));
 
       // Send to webhook
       await fetch(process.env.WEBHOOK_URL, {
