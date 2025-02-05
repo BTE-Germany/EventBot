@@ -30,8 +30,7 @@ module.exports = {
       builds = await Promise.all(
         builds.map(async (build) => {
           let message = await buildMessages.get(build.message);
-          if (!message) return;
-          build.date = message.createdTimestamp;
+          build.date = message.createdTimestamp || 0;
           return {
             id: build.id,
             location: build.location,
