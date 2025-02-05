@@ -4,13 +4,11 @@ module.exports = {
     // Get all users from the database
     let users = await prisma.user.findMany();
     let builds = await prisma.build.findMany();
-
-    let buildMessages = [];
     //get every build message and extract the date of creation and then add it to the builds array
     builds = await builds.map(async (build) => {
       let buildMessage = await client.channels.cache
-        .get(process.env.BUILD_CHANNEL)
-        .messages.fetch(build.message_id);
+        .get(process.env.SUBMISSION_CHANNEL)
+        .messages.fetch(build.message);
       build["date"] = buildMessage.createdTimestamp;
       return build;
     });
