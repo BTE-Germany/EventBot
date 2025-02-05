@@ -105,7 +105,22 @@ module.exports = {
               base_points: base_points,
             },
           });
-          await interaction.reply("Build bewertet. Du warst der 1. Judge. Deine Entscheidung für die Grundpunkte wurde übernommen.");
+          await interaction.reply({
+            content: `Build **#${interaction.options.getInteger("id")}** bewertet. Du warst der 1. Judge. Deine Entscheidung für die Grundpunkte wurde übernommen.`,
+            components: [
+              {
+                type: 1,
+                components: [
+                  {
+                    type: 2,
+                    label: "Zurück",
+                    style: 5,
+                    url: `https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${interaction.id}`,
+                  },
+                ],
+              },
+            ],
+          });
           let embeds = [
             {
               title: `#${build.id.toString()}`,
@@ -171,9 +186,22 @@ module.exports = {
                 base_points,
             },
           });
-          interaction.reply(
-            "Build bewertet. Punkte wurden dem User gutgeschrieben. Du warst der 2. Judge. Somit wurde deine Entscheidung für die Grundpunkte ignoriert."
-          );
+          interaction.reply({
+            content: `Build **#${interaction.options.getInteger("id")}** bewertet. Punkte wurden dem User gutgeschrieben. Du warst der 2. Judge. Somit wurde deine Entscheidung für die Grundpunkte ignoriert.`,
+            components: [
+              {
+              type: 1,
+              components: [
+                {
+                type: 2,
+                label: "Zurück",
+                style: 5,
+                url: `https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${interaction.id}`,
+                },
+              ],
+              },
+            ]
+          });
           let embeds = [
             {
               title: `#${build.id.toString()}`,
