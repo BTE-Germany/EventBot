@@ -27,21 +27,25 @@ module.exports = {
         lastMessageId = moreMessages.last().id;
       }
 
-      builds = builds.map((build) => {
-        let message = buildMessages.get(build.message);
-        if (!message) return;
-        build.date = message.createdTimestamp;
-        return {
-          id: build.id,
-          location: build.location,
-          A: build.A,
-          B: build.B,
-          base_points: build.base_points,
-          builder_id: toString(build.builder_id),
-          judges: build.judges,
-          images: build.images,
-        };
-      });
+      builds = await Promise.all(
+        builds.map(async (build) => {
+          let message = await buildMessages.get(build.message);
+          if (!message) return;
+          build.date = message.createdTimestamp;
+          return {
+            id: build.id,
+            location: build.location,
+            A: build.A,
+            B: build.B,
+            base_points: build.base_points,
+            builder_id: toString(build.builder_id),
+            judges: build.judges,
+            images: build.images,
+          };
+        })
+      );
+
+      builds = builds.filter(build => build !== null);
 
       console.log(
         new Date().toLocaleString(),
