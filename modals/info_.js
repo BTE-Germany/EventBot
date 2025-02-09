@@ -44,7 +44,7 @@ module.exports = {
       value: value,
     });
 
-    console.log(newMessage.embeds[0].fields);
+    console.log(newMessage);
 
     //edit the message
     await message.edit({
