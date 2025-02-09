@@ -1,4 +1,4 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('@discordjs/builders');
+const { ModalBuilder, TextInputBuilder, ActionRowBuilder } = require('@discordjs/builders');
 
 module.exports = {
     button: {
@@ -38,28 +38,28 @@ module.exports = {
             .setCustomId('3d_view')
             .setLabel('3D-View benutzt')
             .setPlaceholder('Ja/Nein')
-            .setStyle(TextInputStyle.Short);
+            .setStyle(1);
 
         //boolean input "Street-View benutzt"
         const input2 = new TextInputBuilder()
             .setCustomId('street_view')
             .setLabel('Street-View benutzt')
             .setPlaceholder('Ja/Nein')
-            .setStyle(TextInputStyle.Short);
+            .setStyle(1);
 
         //text input "Link zu Street-View"
         const input3 = new TextInputBuilder()
             .setCustomId('street_view_link')
             .setLabel('Link zu Street-View')
             .setPlaceholder('Link')
-            .setStyle(TextInputStyle.Short);
+            .setStyle(1);
 
         //text input "Sonstige Informationen"
         const input4 = new TextInputBuilder()
             .setCustomId('other_info')
             .setLabel('Sonstige Informationen')
             .setPlaceholder('Informationen')
-            .setStyle(TextInputStyle.Paragraph);
+            .setStyle(2);
         
 
         // Add inputs to the modal
