@@ -8,7 +8,7 @@ module.exports = {
         //get the build
         const build = await prisma.build.findUnique({
             where: {
-                id: interaction.customId.split("_")[1]
+                id: parseInt(interaction.customId.split("_")[1])
             }
         });
 

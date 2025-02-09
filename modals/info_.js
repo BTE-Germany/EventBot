@@ -8,7 +8,7 @@ module.exports = {
         //get judge_msg
         const judge_msg = await prisma.build.findUnique({
             where: {
-                id: interaction.customId.split("_")[1]
+                id: parseInt(interaction.customId.split("_")[1])
             }
         });
 
