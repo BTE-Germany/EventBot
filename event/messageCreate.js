@@ -92,6 +92,20 @@ module.exports = {
                 .send({
                   content: " ",
                   embeds: embeds,
+                  components: [
+                    {
+                      type: 1,
+                      components: [
+                        {
+                          type: 2,
+                          style: 2,
+                          label: "Zusätzliche Informationen",
+                          custom_id: `info_${obj.id}`,
+                          emoji: "📍"
+                        }
+                      ]
+                    }
+                  ]
                 })
                 .then(async (message) => {
                   await prisma.build.update({

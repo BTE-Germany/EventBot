@@ -1,0 +1,53 @@
+const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('@discordjs/builders');
+
+module.exports = {
+    button: {
+        name: "info_"
+    },
+    run: async (client, interaction, prisma) => {
+        // Create the modal
+        const modal = new ModalBuilder()
+            .setCustomId(interaction.customId)
+            .setTitle('Zusätzliche Informationen');
+
+        //boolean input "3D-View benutzt"
+        const input1 = new TextInputBuilder()
+            .setCustomId('3d_view')
+            .setLabel('3D-View benutzt')
+            .setPlaceholder('Ja/Nein')
+            .setStyle(TextInputStyle.DEFAULT);
+
+        //boolean input "Street-View benutzt"
+        const input2 = new TextInputBuilder()
+            .setCustomId('street_view')
+            .setLabel('Street-View benutzt')
+            .setPlaceholder('Ja/Nein')
+            .setStyle(TextInputStyle.DEFAULT);
+
+        //text input "Link zu Street-View"
+        const input3 = new TextInputBuilder()
+            .setCustomId('street_view_link')
+            .setLabel('Link zu Street-View')
+            .setPlaceholder('Link')
+            .setStyle(TextInputStyle.DEFAULT);
+
+        //text input "Sonstige Informationen"
+        const input4 = new TextInputBuilder()
+            .setCustomId('other_info')
+            .setLabel('Sonstige Informationen')
+            .setPlaceholder('Informationen')
+            .setStyle(TextInputStyle.DEFAULT);
+        
+
+        // Add inputs to the modal
+        modal.addComponents(
+            new ActionRowBuilder().addComponents(input1),
+            new ActionRowBuilder().addComponents(input2),
+            new ActionRowBuilder().addComponents(input3),
+            new ActionRowBuilder().addComponents(input4)
+        );
+
+        // Show the modal to the user
+        await interaction.showModal(modal);
+    }
+}

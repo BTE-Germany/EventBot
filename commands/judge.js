@@ -124,7 +124,7 @@ module.exports = {
           let embeds = [
             {
               title: `#${build.id.toString()}`,
-              description: `Koordinaten: ${build.location}`,
+              description: `Koordinaten: ${build.location} \n Grundpunkte: ${base_points ? "Ja" : "Nein"} \n Bewertet von: ${interaction.member.user.username}`,
               url: "https://bte-germany.de",
               color: 16761344,
               author: {
@@ -231,17 +231,19 @@ module.exports = {
             });
           });
           await client.channels.cache
-            .get(process.env.JUDGE_CHANNEL)
-            .messages.fetch(build.judge_msg.toString())
+            .get(process.env.SUBMISSION_CHANNEL)
+            .messages.fetch(build.message.toString())
             .then((message) => {
               message.edit({
                 content: " ",
                 embeds: embeds,
               });
             });
-          await client.channels.cache
-            .get(process.env.SUBMISSION_CHANNEL)
-            .messages.fetch(build.message.toString())
+
+            embeds[0].description += `\n Bewertet von: <@${build.judges[0]}> und <@${interaction.member.user.id}>`;
+            await client.channels.cache
+            .get(process.env.JUDGE_CHANNEL)
+            .messages.fetch(build.judge_msg.toString())
             .then((message) => {
               message.edit({
                 content: " ",

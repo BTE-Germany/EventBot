@@ -11,6 +11,7 @@ const api = require("./api/api.js");
 
 const commands = [];
 const buttons = [];
+const modals = [];
 client.on("ready", () => {
   console.log(new Date().toLocaleString(), "Ready!");
 });
@@ -73,11 +74,19 @@ client.once("ready", async () => {
   }
 
   const buttonFiles = fs
-      .readdirSync("./buttons")
-      .filter((file) => file.endsWith(".js"));
+    .readdirSync("./buttons")
+    .filter((file) => file.endsWith(".js"));
   for (const file of buttonFiles) {
     let data = require(`./buttons/${file}`);
     buttons.push(data);
+  }
+
+  const modalFiles = fs
+    .readdirSync("./modals")
+    .filter((file) => file.endsWith(".js"));
+  for (const file of modalFiles) {
+    let data = require(`./modals/${file}`);
+    modals.push(data);
   }
 
   await api.start();
@@ -86,7 +95,7 @@ client.once("ready", async () => {
 client.on("interactionCreate", async (interaction) => {
   if (interaction.isCommand()) {
     const command = commands.find(
-        (command) => command.command.name === interaction.commandName
+      (command) => command.command.name === interaction.commandName
     );
     if (!command) return;
     try {
@@ -100,16 +109,34 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
   if (interaction.isButton()) {
-    const button = buttons.find(
-        (button) => interaction.customId.startsWith(button.button.name)
-    )
-    if(!button) return;
+    const button = buttons.find((button) =>
+      interaction.customId.startsWith(button.button.name)
+    );
+    if (!button) return;
     try {
       await button.run(client, interaction, prisma);
     } catch (error) {
       console.error(error);
       await interaction.reply({
-        content: "Beim Ausführen dieser Schaltfläche ist ein Fehler aufgetreten! ",
+        content:
+          "Beim Ausführen dieser Schaltfläche ist ein Fehler aufgetreten! ",
+        ephemeral: true,
+      });
+    }
+  }
+
+  //is modal
+  if (interaction.isModalSubmit()) {
+    const modal = modals.find((modal) =>
+      interaction.customId.startsWith(modal.modal.name)
+    );
+    if (!modal) return;
+    try {
+      await modal.run(client, interaction, prisma);
+    } catch (error) {
+      console.error(error);
+      await interaction.reply({
+        content: "Beim Ausführen dieses Modals ist ein Fehler aufgetreten! ",
         ephemeral: true,
       });
     }
