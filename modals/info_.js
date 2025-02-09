@@ -3,9 +3,6 @@ module.exports = {
         name: "info_"
     },
     run: async (client, interaction, prisma) => {
-        //handle modal submit
-        //add information to judge_msg in discord
-        //get judge_msg
         const judge_msg = await prisma.build.findUnique({
             where: {
                 id: parseInt(interaction.customId.split("_")[1])
