@@ -39,6 +39,10 @@ module.exports = {
       .filter((v) => v !== undefined)
       .join("\n");
 
+    if (!newMessage.embeds[0].fields) {
+      newMessage.embeds[0].fields = [];
+    }
+
     newMessage.embeds[0].fields.push({
       name: "Zusätzliche Informationen",
       value: value,
