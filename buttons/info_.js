@@ -38,6 +38,7 @@ module.exports = {
             .setCustomId('3d_view')
             .setLabel('3D-View benutzt')
             .setPlaceholder('Ja/Nein')
+            .setRequired(true)
             .setStyle(1);
 
         //boolean input "Street-View benutzt"
@@ -45,6 +46,7 @@ module.exports = {
             .setCustomId('street_view')
             .setLabel('Street-View benutzt')
             .setPlaceholder('Ja/Nein')
+            .setRequired(true)
             .setStyle(1);
 
         //text input "Link zu Street-View"
@@ -52,6 +54,7 @@ module.exports = {
             .setCustomId('street_view_link')
             .setLabel('Link zu Street-View')
             .setPlaceholder('Link')
+            .setRequired(false)
             .setStyle(1);
 
         //text input "Sonstige Informationen"
@@ -59,6 +62,7 @@ module.exports = {
             .setCustomId('other_info')
             .setLabel('Sonstige Informationen')
             .setPlaceholder('Informationen')
+            .setRequired(false)
             .setStyle(2);
         
 

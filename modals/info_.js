@@ -15,20 +15,26 @@ module.exports = {
         //get the message
         const message = await client.channels.cache.get(process.env.JUDGE_CHANNEL).messages.fetch(judge_msg.judge_msg.toString());
         let newMessage = message;
+
+        const possible_Inputs = ["3d_view", "street_view", "street_view_link", "other_info"];
+        const value = possible_Inputs.map((v) => {
+            const value = interaction.fields.getTextInputValue(v);
+            if(!value || value === "") return;
+            switch (v) {
+                case "3d_view":
+                    return `3D-View benutzt: ${value}`;
+                case "street_view":
+                    return `Street-View benutzt: ${value}`;
+                case "street_view_link":
+                    return `Link zu Street-View: ${value}`;
+                case "other_info":
+                    return `Sonstige Informationen: ${value}`;
+            }
+        }).filter((v) => v !== undefined).join("\n");
+
         message.embeds[0].fields.push({
             name: "Zusätzliche Informationen",
-            value: interaction.values.map((v) => {
-                switch(v.customId) {
-                    case "3d_view":
-                        return `3D-View benutzt: ${v.value}`;
-                    case "street_view":
-                        return `Street-View benutzt: ${v.value}`;
-                    case "street_view_link":
-                        return `Link zu Street-View: ${v.value}`;
-                    case "other_info":
-                        return `Sonstige Informationen: ${v.value}`;
-                }
-            }).join("\n")
+            value: value
         });
 
         //edit the message
