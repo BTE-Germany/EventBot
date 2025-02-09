@@ -12,8 +12,16 @@ module.exports = {
             }
         });
 
+        if(!build) {
+            await interaction.reply({
+                content: "Dieser Build existiert nicht mehr.",
+                ephemeral: true
+            });
+            return;
+        }
+
         //check if the user is the owner of the build
-        if (build.builder_id !== interaction.user.id) {
+        if (build.builder_id.toString() !== interaction.user.id.toString()) {
             await interaction.reply({
                 content: "Du bist nicht der Besitzer dieses Builds. Finger weg!",
                 ephemeral: true
