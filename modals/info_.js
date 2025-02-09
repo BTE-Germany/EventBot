@@ -32,7 +32,7 @@ module.exports = {
             }
         }).filter((v) => v !== undefined).join("\n");
 
-        message.embeds[0].fields.push({
+        newMessage.embeds[0].fields.push({
             name: "Zusätzliche Informationen",
             value: value
         });
@@ -44,6 +44,12 @@ module.exports = {
                 embeds: newMessage.embeds
             }
         )
+
+        //reply to the user
+        await interaction.reply({
+            content: "Zusätzliche Informationen hinzugefügt.",
+            ephemeral: true
+        });
 
     }
 }
