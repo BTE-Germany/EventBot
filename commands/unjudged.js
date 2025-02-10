@@ -1,3 +1,5 @@
+const { Prisma } = require("@prisma/client");
+
 require("dotenv").config();
 
 module.exports = {
@@ -7,7 +9,7 @@ module.exports = {
   },
   run: async (client, interaction, prisma) => {
     //get all unjudged builds, that means judges[] cardinality is < 2
-    const unjudgedBuilds = await prisma.build.$queryRaw`SELECT id, \'https://discord.com/channels/${process.env.GUILD_ID}/${process.env.JUDGE_CHANNEL}/\' || judge_msg AS discord_url FROM objects WHERE cardinality(judges) < 2;`;
+    const unjudgedBuilds = await prisma.$queryRaw(Prisma.sql`SELECT id, \'https://discord.com/channels/${process.env.GUILD_ID}/${process.env.JUDGE_CHANNEL}/\' || judge_msg AS discord_url FROM objects WHERE cardinality(judges) < 2;`);
 
     if (unjudgedBuilds.length === 0) {
       return interaction.reply({
