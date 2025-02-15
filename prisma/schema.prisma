@@ -8,21 +8,22 @@ datasource db {
 }
 
 model User {
-  id           BigInt     @id @db.BigInt
+  id           BigInt  @id @db.BigInt
   banned       Boolean @default(false)
-  minecraft_id String @unique
-  points       Float     @default(0)
+  minecraft_id String  @unique
+  points       Float   @default(0)
 }
 
 model Build {
-  id       Int    @id @default(autoincrement())
-  message  BigInt? @db.BigInt
-  judge_msg BigInt? @db.BigInt
-  location String
-  A        Float @default(0)
-  B        Float @default(0)
-  base_points Boolean @default(true)
-  builder_id  BigInt @db.BigInt
-  judges   String[]
-  images   String[]
+  id                Int      @id @default(autoincrement())
+  message           BigInt?  @db.BigInt
+  judge_msg         BigInt?  @db.BigInt
+  location          String
+  A                 Float    @default(0)
+  B                 Float    @default(0)
+  base_points       Boolean  @default(true)
+  builder_id        BigInt   @db.BigInt
+  judges            String[]
+  images            String[]
+  created_timestamp DateTime @default(now()) @db.Timestamptz(1)
 }

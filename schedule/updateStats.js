@@ -1,86 +1,59 @@
+const axios = require("axios");
+let run = true;
+
 module.exports = {
   time: 3000,
   run: async (client, prisma) => {
-    return;
-    // Disable this schedule
-    console.log(new Date().toLocaleString(), "Stats werden geupdated...");
-    try {
-      // Get all users from the database
-      let users = await prisma.user.findMany();
-      let builds = await prisma.build.findMany();
-
-      // Get every build message and extract the date of creation and then add it to the builds array
-      let buildMessages = await client.channels.cache
-        .get(process.env.SUBMISSION_CHANNEL)
-        .messages.fetch({ limit: 100 });
-
-      // Fetch more messages if needed
-      while (buildMessages.size < builds.length) {
-        let lastMessageId = buildMessages.last().id;
-
-        const moreMessages = await client.channels.cache
-          .get(process.env.SUBMISSION_CHANNEL)
-          .messages.fetch({ limit: 100, before: lastMessageId });
-
-        if (moreMessages.size === 0) break;
-
-        buildMessages = buildMessages.concat(moreMessages);
-        lastMessageId = moreMessages.last().id;
-      }
-
-      builds = await Promise.all(
-        builds.map(async (build) => {
-          let message = await buildMessages.get(build.message);
-          build.date = message.createdTimestamp || 0;
-          return {
-            id: build.id,
-            location: build.location,
-            A: build.A,
-            B: build.B,
-            base_points: build.base_points,
-            builder_id: toString(build.builder_id),
-            judges: build.judges,
-            images: build.images,
-          };
-        })
-      );
-
-      builds = builds.filter(build => build !== null);
-
-      console.log(
-        new Date().toLocaleString(),
-        "Stats - Builds wurden geladen..."
-      );
-
-      users = users.map((user) => ({
-        ...user,
-        id: user.id.toString(),
-      }));
-
-      // Send to webhook
-      await fetch(process.env.WEBHOOK_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          builds: builds,
-          users: users,
-        }),
-      });
-
-      console.log(
-        new Date().toLocaleString(),
-        "Stats - Webhook wurde gesendet..."
-      );
-    } catch (error) {
-      console.error(
-        new Date().toLocaleString(),
-        "Stats - Fehler beim Senden des Webhooks:",
-        error
-      );
+    if (!run) return;
+    //send relevant data to the webhook
+    const webhook = process.env.webhook;
+    if (!webhook) {
+      return console.log(new Date().toLocaleString(), "Kein Webhook gefunden.");
     }
 
-    console.log(new Date().toLocaleString(), "Stats wurden geupdated...");
+    let statsObject = {
+      users: [],
+      builds: [],
+      points: 0,
+      timestamp: new Date().toUTCString(),
+    };
+
+    let users = await prisma.user.findMany({
+      select: {
+        points: true,
+        minecraft_id: true,
+      },
+    });
+
+    statsObject["users"] = users.map((user) => {
+      return {
+        id: user.minecraft_id,
+        points: user.points,
+      };
+    });
+
+    let builds = await prisma.build.findMany();
+    let completedBuilds = builds.filter((build) => build.judges.length > 1);
+    statsObject["builds"] = completedBuilds;
+
+    users.forEach((user) => {
+      statsObject["points"] += user.points;
+    });
+
+    axios
+      .post(webhook, statsObject)
+      .then(() => {
+        console.log(
+          new Date().toLocaleString(),
+          "Statistiken wurden erfolgreich an Webhook gesendet."
+        );
+      })
+      .catch((err) => {
+        console.error(
+          new Date().toLocaleString(),
+          "Fehler beim Senden der Statistiken an Webhook:",
+          err
+        );
+      });
   },
 };
