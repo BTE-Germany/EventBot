@@ -8,6 +8,7 @@ module.exports = {
     //send relevant data to the webhook
     const webhook = process.env.webhook;
     if (!webhook) {
+      run = false;
       return console.log(new Date().toLocaleString(), "Kein Webhook gefunden.");
     }
 
