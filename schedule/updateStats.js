@@ -20,17 +20,13 @@ module.exports = {
 
     let users = await prisma.user.findMany({
       select: {
+        id: true,
         points: true,
         minecraft_id: true,
       },
     });
 
-    statsObject["users"] = users.map((user) => {
-      return {
-        id: user.minecraft_id,
-        points: user.points,
-      };
-    });
+    statsObject["users"] = users;
 
     let builds = await prisma.build.findMany();
     let completedBuilds = builds.filter((build) => build.judges.length > 1);
