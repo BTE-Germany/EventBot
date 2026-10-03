@@ -47,32 +47,16 @@ module.exports = {
                 id: interaction.options.getInteger("id"),
               },
             });
-            await prisma.user
-              .findUnique({
-                where: {
-                  id: build.builder_id,
-                },
-              })
-              .then(async (user) => {
-                await prisma.user.update({
-                  where: {
-                    id: build.builder_id,
-                  },
-                  data: {
-                    points: user.points - 5,
-                  },
-                });
-                await interaction.reply({
-                  content:
-                    "Build mit folgendem Grund gelöscht: " +
-                    interaction.options.getString("reason"),
-                });
-                console.log(
-                  new Date().toLocaleString(),
-                  `Judge ${interaction.member.user.id} hat build ${build.id
-                  } mit folgendem Grund gelöscht: ${interaction.options.getString("reason")}`
-                );
-              });
+            await interaction.reply({
+              content:
+                "Build mit folgendem Grund gelöscht: " +
+                interaction.options.getString("reason"),
+            });
+            console.log(
+              new Date().toLocaleString(),
+              `Judge ${interaction.member.user.id} hat build ${build.id
+              } mit folgendem Grund gelöscht: ${interaction.options.getString("reason")}`
+            );
           } else {
             client.channels.cache
               .get(process.env.SUBMISSION_CHANNEL)
@@ -96,13 +80,13 @@ module.exports = {
                     },
                   })
                   .then(async (user) => {
-                    let basepoints = build.base_points ? 5 : 0;
+                    const pointsToDeduct = (build.base_points || 0) + (build.A || 0) + (build.B || 0);
                     await prisma.user.update({
                       where: {
                         id: build.builder_id,
                       },
                       data: {
-                        points: user.points - basepoints - build.A - build.B,
+                        points: Math.max(0, user.points - pointsToDeduct),
                       },
                     });
                   });
@@ -112,6 +96,11 @@ module.exports = {
                 "Build mit folgendem Grund gelöscht: " +
                 interaction.options.getString("reason"),
             });
+            console.log(
+              new Date().toLocaleString(),
+              `Judge ${interaction.member.user.id} hat build ${build.id
+              } mit folgendem Grund gelöscht: ${interaction.options.getString("reason")}`
+            );
           }
         }
       });

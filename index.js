@@ -40,6 +40,14 @@ for (const file of eventFiles) {
 }
 
 client.once("ready", async () => {
+  try {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "reference_type" TEXT;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "reference_link" TEXT;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "judge_details" JSONB;`);
+  } catch (e) {
+    // ignore
+  }
+
   //load command from command handler dir
   // client.application.commands.set([]);
   const commandFiles = fs
@@ -93,6 +101,18 @@ client.once("ready", async () => {
 });
 
 client.on("interactionCreate", async (interaction) => {
+  if (interaction.isAutocomplete()) {
+    const command = commands.find(
+      (command) => command.command.name === interaction.commandName
+    );
+    if (!command || !command.autocomplete) return;
+    try {
+      await command.autocomplete(client, interaction, prisma);
+    } catch (error) {
+      console.error(error);
+    }
+    return;
+  }
   if (interaction.isCommand()) {
     const command = commands.find(
       (command) => command.command.name === interaction.commandName

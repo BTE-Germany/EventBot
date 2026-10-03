@@ -37,13 +37,40 @@ module.exports = {
           args.attachments.map((a) => a).length > 0 &&
           args.content.length > 0
         ) {
+          const urlMatch = args.content.match(/https?:\/\/[^\s]+/i);
+          if (!urlMatch) {
+            const botmessage = await args.channel.send({
+              content: `❌ <@${args.author.id}> **Einreichung abgelehnt (Quellenpflicht):**\nBeim Einreichen muss zwingend angegeben werden, welche Referenz genutzt wurde (3D-Ansicht, Streetview, Bilder) inklusive eines gültigen Links (z. B. Google Maps / Streetview URL).\n*Tipp: Du kannst auch den Befehl \`/submit\` verwenden.*`,
+            });
+            setTimeout(async () => {
+              try {
+                await botmessage.delete();
+                await args.delete();
+              } catch (e) {}
+            }, 8000);
+            return;
+          }
+
+          const referenceLink = urlMatch[0];
+          let referenceType = "Bilder";
+          if (/3d/i.test(args.content)) {
+            referenceType = "3D-Ansicht";
+          } else if (/street/i.test(args.content)) {
+            referenceType = "Streetview";
+          }
+
+          let locationText = args.content.replace(referenceLink, "").trim();
+          if (!locationText) locationText = args.content;
+
           prisma.build
             .create({
               data: {
                 builder_id: BigInt(args.author.id),
                 message: BigInt(args.id),
                 images: ["loading"],
-                location: args.content,
+                location: locationText,
+                reference_type: referenceType,
+                reference_link: referenceLink,
               },
             })
             .then(async (obj) => {
@@ -51,7 +78,7 @@ module.exports = {
               let embeds = [
                 {
                   title: `#${obj.id}`,
-                  description: "Koordinaten: " + obj.location,
+                  description: `Koordinaten: ${obj.location}\nReferenz: **${referenceType}**\nQuelle: ${referenceLink}`,
                   url: "https://bte-germany.de",
                   author: {
                     name: `${dbUser.minecraft_id}`,
@@ -139,23 +166,17 @@ module.exports = {
                 `Neuer Build erstellt von ${dbUser.minecraft_id} mit der ID ${obj.id}`
               );
             });
-          await prisma.user.update({
-            where: {
-              id: BigInt(args.author.id),
-            },
-            data: {
-              points: dbUser.points + 5,
-            },
-          });
         } else {
           const botmessage = await args.channel.send({
             content:
-              "Bitte hänge ein Bild an und schreibe die Koordinaten in die Nachricht",
+              "Bitte hänge mindestens ein Bild an und gib Koordinaten sowie eine Referenz mit Link an (oder nutze `/submit`).",
           });
           setTimeout(async () => {
-            await botmessage.delete();
-            await args.delete();
-          }, 5000);
+            try {
+              await botmessage.delete();
+              await args.delete();
+            } catch (e) {}
+          }, 6000);
         }
       }
     }

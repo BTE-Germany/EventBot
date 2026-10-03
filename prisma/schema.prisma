@@ -21,7 +21,10 @@ model Build {
   location          String
   A                 Float    @default(0)
   B                 Float    @default(0)
-  base_points       Boolean  @default(true)
+  base_points       Float    @default(0)
+  reference_type    String?
+  reference_link    String?
+  judge_details     Json?
   builder_id        BigInt   @db.BigInt
   judges            String[]
   images            String[]

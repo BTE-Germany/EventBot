@@ -7,23 +7,55 @@
 > This command registers a user with their minecraft account. This step is necessary to start building.
 
 ```
-/judge <id:int> <details:int> <aufwand:int> <grundpunkte:bool>
+/submit <koordinaten:string> <referenz:string> <link:string> <bild1:attachment> [bild2:attachment] [bild3:attachment]
 ```
 
-> By default a user is granted 10 points when submitting a building.
-> This command is only available to those with the "PING_ROLE" defined in your .env. Points for "details" and "aufwand" range from 1 to 10. The "grundpunkte" bool can be used to remove the 10 base-points from the user.
+> Reiche einen neuen Build ein. Die Quellenangabe (Referenz: 3D-Ansicht, Streetview, Bilder + gültiger Link) ist verpflichtend.
+
+```
+/judge <id:int> [grundpunkte:number] <aufwand_komplexitaet:number> <technik_farben_details:number>
+```
+
+> Nur für Nutzer mit der "PING_ROLE". Punktevergabe in 0,5-Schritten (maximal 18 Punkte):
+> - `grundpunkte`: 1 für Infrastruktur, 2 für Gebäude (wird **nur vom 1. Judge** festgelegt)
+> - `aufwand_komplexitaet`: 0 bis 6 Punkte (wird zwischen beiden Judges gemittelt)
+> - `technik_farben_details`: 0 bis 10 Punkte (wird zwischen beiden Judges gemittelt)
+
+```
+/correct <id:int> <reason:string> [grundpunkte:number] [aufwand_komplexitaet:number] [technik_farben_details:number]
+```
+
+> Ermöglicht es Judges, Bewertungen nachträglich zu korrigieren. Punktdifferenzen werden dem Builder automatisch gutgeschrieben oder abgezogen.
+
+```
+/refresh [id:int]
+```
+
+> Nur für Nutzer mit der "PING_ROLE". Aktualisiert die Building-Panels eines Builds in #submissions und #judge. Ohne `id` werden die letzten 10 Builds aktualisiert.
+
+```
+/stats
+```
+
+> Zeigt die aktuellen Event-Statistiken inklusive automatisch generierter Ranglisten-Grafik an.
 
 ```
 /delete <id:int> <reason:string>
 ```
 
-> This command is only available to those with the "PING_ROLE" defined in your .env. As it's name suggests it deletes a build.
+> Löscht ein Build und zieht bei bereits bewerteten Builds die vergebenen Punkte ab.
 
 ```
 /createmsg
 ```
 
-> This command generates a message that can be supplied in your .env as the "LEADERBOARD_MESSAGE".
+> Erzeugt eine Platzhalter-Nachricht für die `LEADERBOARD_MESSAGE` in der `.env`.
+
+```
+/createstatsmsg
+```
+
+> Erzeugt eine Platzhalter-Nachricht für die `STATS_MESSAGE` in der `.env`.
 
 Use the following template to add custom commands:
 

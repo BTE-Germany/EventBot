@@ -28,7 +28,7 @@ Sample response:
       "location": "location",
       "A": 0,
       "B": 0,
-      "base_points": true,
+      "base_points": 0,
       "builder_id": "123456789012345678",
       "judges": [],
       "images": [
