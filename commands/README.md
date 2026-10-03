@@ -13,7 +13,7 @@
 > Reiche einen neuen Build ein. Die Quellenangabe (Referenz: 3D-Ansicht, Streetview, Bilder + gültiger Link) ist verpflichtend.
 
 ```
-/judge <id:int> [grundpunkte:number] <aufwand_komplexitaet:number> <technik_farben_details:number>
+/judge <id:int> <aufwand_komplexitaet:number> <technik_farben_details:number> [grundpunkte:number]
 ```
 
 > Nur für Nutzer mit der "PING_ROLE". Punktevergabe in 0,5-Schritten (maximal 18 Punkte):

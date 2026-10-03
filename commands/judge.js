@@ -11,14 +11,6 @@ module.exports = {
         required: true,
       },
       {
-        name: "grundpunkte",
-        description:
-          "Grundpunkte: 1 für Infrastruktur, 2 für Gebäude (nur 1. Judge)",
-        type: 10,
-        autocomplete: true,
-        required: false,
-      },
-      {
         name: "aufwand_komplexitaet",
         description: "Aufwand & Komplexität (0 bis 6 Punkte)",
         type: 10,
@@ -67,6 +59,14 @@ module.exports = {
           { name: "10", value: 10 },
         ],
         required: true,
+      },
+      {
+        name: "grundpunkte",
+        description:
+          "Grundpunkte: 1 für Infrastruktur, 2 für Gebäude (nur 1. Judge)",
+        type: 10,
+        autocomplete: true,
+        required: false,
       },
     ],
   },
