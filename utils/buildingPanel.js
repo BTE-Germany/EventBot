@@ -201,23 +201,34 @@ function generateBuildingEmbeds(build, user, isJudgeView = false) {
 
   const embeds = [primaryEmbed];
 
-  // If completed, add auto-generated score graphic
-  if (isCompleted) {
-    const chartUrl = generateBuildingScoreChart(build);
-    primaryEmbed.image = { url: chartUrl };
-  } else if (build.images && build.images.length > 0 && build.images[0] !== "loading") {
+  if (build.images && build.images.length > 0 && build.images[0] !== "loading") {
     primaryEmbed.image = { url: build.images[0] };
   }
 
   // Add additional screenshots as gallery embeds
+  // (Discord shows max. 4 images per gallery, so keep one slot free for the score chart)
+  const maxImages = isCompleted ? 3 : 4;
   if (build.images && build.images.length > 1) {
-    for (let i = 1; i < Math.min(build.images.length, 4); i++) {
+    for (let i = 1; i < Math.min(build.images.length, maxImages); i++) {
       if (build.images[i] && build.images[i] !== "loading") {
         embeds.push({
           url: "https://bte-germany.de",
           image: { url: build.images[i] },
         });
       }
+    }
+  }
+
+  // If completed, add auto-generated score graphic as an additional image
+  if (isCompleted) {
+    const chartUrl = generateBuildingScoreChart(build);
+    if (primaryEmbed.image) {
+      embeds.push({
+        url: "https://bte-germany.de",
+        image: { url: chartUrl },
+      });
+    } else {
+      primaryEmbed.image = { url: chartUrl };
     }
   }
 
