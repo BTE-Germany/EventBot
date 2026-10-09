@@ -74,18 +74,12 @@ module.exports = {
     try {
       const focusedOption = interaction.options.getFocused(true);
       if (focusedOption.name === "id") {
-        const builds = await prisma.build.findMany({
-          orderBy: { id: "asc" },
-          take: 50,
-        });
-        const unjudged = builds
-          .filter((b) => b.judges.length < 2)
-          .filter(
-            (b) =>
-              !focusedOption.value ||
-              b.id.toString().includes(focusedOption.value.toString())
-          )
-          .slice(0, 25);
+        const search = `%${focusedOption.value ?? ""}%`;
+        const unjudged = await prisma.$queryRaw`
+          SELECT id, judges, location FROM "Build"
+          WHERE cardinality(judges) < 2 AND id::text LIKE ${search}
+          ORDER BY id ASC
+          LIMIT 25`;
 
         return interaction.respond(
           unjudged.map((b) => ({
