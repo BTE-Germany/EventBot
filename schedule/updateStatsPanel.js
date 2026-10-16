@@ -1,8 +1,10 @@
 require("dotenv").config();
+const { getRankedUsers } = require("../utils/leaderboard.js");
+const { buildTotal } = require("../utils/points.js");
 
 async function generateStatsData(prisma) {
-  let users = await prisma.user.findMany();
-  users = users.sort((a, b) => b.points - a.points);
+  const users = await getRankedUsers(prisma);
+  const registeredUsers = await prisma.user.count({ where: { banned: false } });
 
   const builds = await prisma.build.findMany();
   const completedBuilds = builds.filter((b) => b.judges.length >= 2);
@@ -12,21 +14,14 @@ async function generateStatsData(prisma) {
   const buildings = completedBuilds.filter((b) => b.base_points === 2).length;
   const infrastructures = completedBuilds.filter((b) => b.base_points === 1).length;
 
-  let totalPoints = 0;
-  users.forEach((u) => {
-    totalPoints += u.points;
-  });
-
-  const totalBuildPoints = completedBuilds.reduce(
-    (sum, b) => sum + (b.base_points || 0) + (b.A || 0) + (b.B || 0),
-    0
-  );
+  const totalPoints = users.reduce((sum, u) => sum + u.points, 0);
+  const totalBuildPoints = completedBuilds.reduce((sum, b) => sum + buildTotal(b), 0);
   const avgPoints =
     completedBuilds.length > 0
       ? (totalBuildPoints / completedBuilds.length).toFixed(1)
       : "0.0";
 
-  const topUsers = users.filter((u) => u.points > 0).slice(0, 5);
+  const topUsers = users.slice(0, 5);
 
   const chartConfig = {
     type: "bar",
@@ -67,7 +62,7 @@ async function generateStatsData(prisma) {
       plugins: {
         title: {
           display: true,
-          text: "🏆 Top Builder - Rangliste",
+          text: "Top Builder - Rangliste",
           font: { size: 16, weight: "bold" },
           color: "#ffffff",
         },
@@ -86,13 +81,14 @@ async function generateStatsData(prisma) {
     },
   };
 
-  const chartUrl = `https://quickchart.io/chart?bkg=%232b2d31&w=650&h=300&c=${encodeURIComponent(
+  // v=3: the config uses Chart.js 3 syntax, quickchart defaults to Chart.js 2
+  const chartUrl = `https://quickchart.io/chart?v=3&bkg=%232b2d31&w=650&h=300&c=${encodeURIComponent(
     JSON.stringify(chartConfig)
   )}`;
 
   const embed = {
     title: "📊 Event-Statistiken & Fortschritt",
-    description: `Aktuelle Echtzeit-Statistiken zum Bauevent.\nInsgesamt **${users.length}** registrierte Builder und **${builds.length}** eingereichte Builds.`,
+    description: `Aktuelle Echtzeit-Statistiken zum Bauevent.\nInsgesamt **${registeredUsers}** registrierte Builder und **${builds.length}** eingereichte Builds.`,
     color: 5793266, // 0x5865F2
     fields: [
       {
@@ -117,12 +113,10 @@ async function generateStatsData(prisma) {
     footer: {
       text: `Zuletzt aktualisiert: ${new Date().toLocaleString("de-DE")} • BTE Germany`,
     },
-    thumbnail: {
-      url: process.env.EVENT_IMG || undefined,
-    },
+    thumbnail: process.env.EVENT_IMG ? { url: process.env.EVENT_IMG } : undefined,
   };
 
-  return { embed, chartUrl, stats: { totalUsers: users.length, totalBuilds: builds.length } };
+  return { embed, chartUrl, stats: { totalUsers: registeredUsers, totalBuilds: builds.length } };
 }
 
 module.exports = {
@@ -138,9 +132,7 @@ module.exports = {
       const { embed } = await generateStatsData(prisma);
 
       const channel = await client.channels.fetch(process.env.STATS_CHANNEL);
-      if (!channel) return;
       const message = await channel.messages.fetch(process.env.STATS_MESSAGE);
-      if (!message) return;
 
       await message.edit({
         content: null,

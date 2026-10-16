@@ -1,184 +1,81 @@
 require("dotenv").config();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const { BlobServiceClient } = require("@azure/storage-blob");
-const blobServiceClient = BlobServiceClient.fromConnectionString(
-  process.env.AZURE_STORAGE_CONNECTION_STRING
-);
-const crypto = require("crypto");
-const containerClient = blobServiceClient.getContainerClient(
-  process.env.CONTAINER_NAME
-);
+const prisma = require("../utils/prisma.js");
+const { isImage } = require("../utils/storage.js");
+const { createSubmission, MAX_IMAGES } = require("../utils/submission.js");
+
+// Shows a short-lived hint and removes the user's message along with it
+async function rejectMessage(message, content, delay) {
+  const botMessage = await message.reply({ content });
+  setTimeout(async () => {
+    await botMessage.delete().catch(() => {});
+    await message.delete().catch(() => {});
+  }, delay);
+}
 
 module.exports = {
   name: "messageCreate",
   once: false,
-  async execute(args) {
-    if (args.author.id === args.client.user.id) return;
-    if (args.channel.id === process.env.SUBMISSION_CHANNEL) {
-      const dbUser = await prisma.user.findUnique({
-        where: {
-          id: BigInt(args.author.id),
-        },
-      });
-      if (!dbUser) {
-        const botmessage = await args.channel.send({
-          content: "You are not registered! Please register with `/register`.",
-          messageReference: {
-            messageID: args.id,
-          },
-        });
-        setTimeout(async () => {
-          await botmessage.delete();
-          await args.delete();
-        }, 5000);
-      } else {
-        if (
-          args.attachments.map((a) => a).length > 0 &&
-          args.content.length > 0
-        ) {
-          const urlMatch = args.content.match(/https?:\/\/[^\s]+/i);
-          if (!urlMatch) {
-            const botmessage = await args.channel.send({
-              content: `❌ <@${args.author.id}> **Einreichung abgelehnt (Quellenpflicht):**\nBeim Einreichen muss zwingend angegeben werden, welche Referenz genutzt wurde (3D-Ansicht, Streetview, Bilder) inklusive eines gültigen Links (z. B. Google Maps / Streetview URL).\n*Tipp: Du kannst auch den Befehl \`/submit\` verwenden.*`,
-            });
-            setTimeout(async () => {
-              try {
-                await botmessage.delete();
-                await args.delete();
-              } catch (e) {}
-            }, 8000);
-            return;
-          }
+  async execute(message) {
+    if (message.author.bot) return;
+    if (message.channel.id !== process.env.SUBMISSION_CHANNEL) return;
 
-          const referenceLink = urlMatch[0];
-          let referenceType = "Bilder";
-          if (/3d/i.test(args.content)) {
-            referenceType = "3D-Ansicht";
-          } else if (/street/i.test(args.content)) {
-            referenceType = "Streetview";
-          }
+    const dbUser = await prisma.user.findUnique({
+      where: { id: BigInt(message.author.id) },
+    });
+    if (!dbUser) {
+      return rejectMessage(
+        message,
+        "Du bist noch nicht registriert! Bitte registriere dich zuerst mit `/register`.",
+        5000
+      );
+    }
+    if (dbUser.banned) {
+      return rejectMessage(message, "Du bist vom Event ausgeschlossen.", 5000);
+    }
 
-          let locationText = args.content.replace(referenceLink, "").trim();
-          if (!locationText) locationText = args.content;
+    const attachments = [...message.attachments.values()].filter(isImage);
+    if (attachments.length === 0 || message.content.trim().length === 0) {
+      return rejectMessage(
+        message,
+        "Bitte hänge mindestens ein Bild an und gib Koordinaten sowie eine Referenz mit Link an (oder nutze `/submit`).",
+        6000
+      );
+    }
 
-          prisma.build
-            .create({
-              data: {
-                builder_id: BigInt(args.author.id),
-                message: BigInt(args.id),
-                images: ["loading"],
-                location: locationText,
-                reference_type: referenceType,
-                reference_link: referenceLink,
-              },
-            })
-            .then(async (obj) => {
-              const user = args.author;
-              let embeds = [
-                {
-                  title: `#${obj.id}`,
-                  description: `Koordinaten: ${obj.location}\nReferenz: **${referenceType}**\nQuelle: ${referenceLink}`,
-                  url: "https://bte-germany.de",
-                  author: {
-                    name: `${dbUser.minecraft_id}`,
-                  },
-                },
-              ];
-              let images = [];
-              for (const image of args.attachments.map((a) => a).slice(0, 3)) {
-                let uuid = crypto.randomUUID();
-                const response = await fetch(image.url);
-                const buffer = await response.arrayBuffer();
-                let filetype = image.url.match(/\.([^/?#]+)(?=[?#]|$)/)[1];
-                const blockBlobClient = containerClient.getBlockBlobClient(
-                  `${user.id}/${uuid}.${filetype}`
-                );
-                await blockBlobClient.uploadData(buffer, buffer.byteLength);
-                embeds.push({
-                  url: "https://bte-germany.de",
-                  image: {
-                    url: `${process.env.CDN_URL}/${process.env.CONTAINER_NAME
-                      }/${user.id}/${uuid}.${filetype}`,
-                  },
-                });
-                images.push(
-                  `${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/${user.id
-                  }/${uuid}.${filetype}`
-                );
-              }
-              await prisma.build.update({
-                where: {
-                  id: obj.id,
-                },
-                data: {
-                  images: images,
-                },
-              });
-              args.channel
-                .send({
-                  content: " ",
-                  embeds: embeds,
-                  components: [
-                    {
-                      type: 1,
-                      components: [
-                        {
-                          type: 2,
-                          style: 2,
-                          label: "Zusätzliche Informationen",
-                          custom_id: `info_${obj.id}`,
-                          emoji: "📍"
-                        }
-                      ]
-                    }
-                  ]
-                })
-                .then(async (message) => {
-                  await prisma.build.update({
-                    where: {
-                      id: obj.id,
-                    },
-                    data: {
-                      message: BigInt(message.id),
-                    },
-                  });
-                });
-              args.client.channels.cache
-                .get(process.env.JUDGE_CHANNEL)
-                .send({
-                  content: `<@&${process.env.PING_ROLE}>`,
-                  embeds: embeds,
-                })
-                .then(async (msg) => {
-                  await prisma.build.update({
-                    where: {
-                      id: obj.id,
-                    },
-                    data: {
-                      judge_msg: BigInt(msg.id),
-                    },
-                  });
-                });
-              await args.delete();
-              console.log(
-                new Date().toLocaleString(),
-                `Neuer Build erstellt von ${dbUser.minecraft_id} mit der ID ${obj.id}`
-              );
-            });
-        } else {
-          const botmessage = await args.channel.send({
-            content:
-              "Bitte hänge mindestens ein Bild an und gib Koordinaten sowie eine Referenz mit Link an (oder nutze `/submit`).",
-          });
-          setTimeout(async () => {
-            try {
-              await botmessage.delete();
-              await args.delete();
-            } catch (e) {}
-          }, 6000);
-        }
-      }
+    const urlMatch = message.content.match(/https?:\/\/[^\s]+/i);
+    if (!urlMatch) {
+      return rejectMessage(
+        message,
+        `❌ **Einreichung abgelehnt (Quellenpflicht):**\nBeim Einreichen muss zwingend angegeben werden, welche Referenz genutzt wurde (3D-Ansicht, Streetview, Bilder) inklusive eines gültigen Links (z. B. Google Maps / Streetview URL).\n*Tipp: Du kannst auch den Befehl \`/submit\` verwenden.*`,
+        8000
+      );
+    }
+
+    const referenceLink = urlMatch[0];
+    let referenceType = "Bilder";
+    if (/3d/i.test(message.content)) {
+      referenceType = "3D-Ansicht";
+    } else if (/street/i.test(message.content)) {
+      referenceType = "Streetview";
+    }
+
+    const location =
+      message.content.replace(referenceLink, "").trim() || message.content;
+
+    const { allUploaded } = await createSubmission({
+      client: message.client,
+      prisma,
+      dbUser,
+      location,
+      referenceType,
+      referenceLink,
+      attachments: attachments.slice(0, MAX_IMAGES),
+    });
+
+    // If an upload failed the build still points at this message's attachments,
+    // which stop working once the message is deleted
+    if (allUploaded) {
+      await message.delete().catch(() => {});
     }
   },
 };

@@ -1,9 +1,12 @@
 require("dotenv").config();
+const { isAdmin, denyAdmin } = require("../utils/permissions.js");
 
 module.exports = {
   command: {
     name: "cleardatabase",
     description: "Löscht PERMANENT den Inhalt der BUILD-Tabelle und setzt alle Punkte auf 0.",
+    // Only visible to admins
+    default_member_permissions: "0",
     options: [
       {
         name: "sure",
@@ -20,6 +23,8 @@ module.exports = {
     ],
   },
   run: async (client, interaction, prisma) => {
+    if (!isAdmin(interaction)) return denyAdmin(interaction);
+
     if (interaction.options.getBoolean("sure") === false) {
       return interaction.reply({
         content: "Du musst sicherstellen, dass du die Datenbank wirklich löschen möchtest.",
@@ -27,27 +32,27 @@ module.exports = {
       });
     }
 
-    const builds = await prisma.build.findMany();
-
-    if (builds.length === 0) {
+    if ((await prisma.build.count()) === 0) {
       return interaction.reply({
-        content: "The database is already empty.",
+        content: "Die Datenbank ist bereits leer.",
         ephemeral: true,
       });
     }
 
     const reason = interaction.options.getString("reason");
 
-    await prisma.build.deleteMany();
-    await prisma.$executeRaw`ALTER SEQUENCE "Build_id_seq" RESTART WITH 1;`;
-    await prisma.user.updateMany({
-      data: {
-        points: 0,
-      },
-    });
+    await prisma.$transaction([
+      prisma.build.deleteMany(),
+      prisma.$executeRaw`ALTER SEQUENCE "Build_id_seq" RESTART WITH 1;`,
+      prisma.user.updateMany({ data: { points: 0 } }),
+    ]);
 
-    interaction.reply({
-      content: "BUILD-Tabelle geleert. Alle Punkte auf 0 zurückgesetzt. Reason: " + reason
+    console.log(
+      new Date().toLocaleString(),
+      `${interaction.user.username} (${interaction.user.id}) hat die BUILD-Tabelle geleert. Grund: ${reason}`
+    );
+    await interaction.reply({
+      content: `BUILD-Tabelle geleert. Alle Punkte auf 0 zurückgesetzt. Grund: ${reason}`,
     });
   }
 };

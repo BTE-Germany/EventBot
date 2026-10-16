@@ -1,109 +1,102 @@
 const path = require("path");
 const fs = require("fs");
 const discord = require("discord.js");
-const { PrismaClient } = require("@prisma/client");
 require("dotenv").config();
-const client = new discord.Client({
-  intents: new discord.IntentsBitField(33283),
-});
-const prisma = new PrismaClient();
+const prisma = require("./utils/prisma.js");
 const api = require("./api/api.js");
+
+const client = new discord.Client({
+  intents: [
+    discord.GatewayIntentBits.Guilds,
+    discord.GatewayIntentBits.GuildMembers,
+    discord.GatewayIntentBits.GuildMessages,
+    discord.GatewayIntentBits.MessageContent,
+  ],
+});
 
 const commands = [];
 const buttons = [];
 const modals = [];
-client.on("ready", () => {
-  console.log(new Date().toLocaleString(), "Ready!");
-});
 
-const eventsPath = path.join(__dirname, "event");
-const eventFiles = fs.readdirSync(eventsPath);
+function loadModules(dir) {
+  return fs
+    .readdirSync(path.join(__dirname, dir))
+    .filter((file) => file.endsWith(".js"))
+    .map((file) => ({ file, data: require(path.join(__dirname, dir, file)) }));
+}
 
-for (const file of eventFiles) {
-  const filePath = path.join(eventsPath, file);
-  const event = require(filePath);
-  if (event.name !== "ready" && event.name !== "interactionCreate") {
-    if (event.once) {
-      console.log(
-        new Date().toLocaleString(),
-        `Event registriert: ${event.name}`
-      );
-      client.once(event.name, (...args) => event.execute(...args));
-    } else {
-      console.log(
-        new Date().toLocaleString(),
-        `Event registriert: ${event.name}`
-      );
-      client.on(event.name, (...args) => event.execute(...args));
-    }
-  }
+for (const { data: event } of loadModules("event")) {
+  console.log(new Date().toLocaleString(), `Event registriert: ${event.name}`);
+  const listener = (...args) =>
+    Promise.resolve(event.execute(...args)).catch((err) =>
+      console.error(`Fehler im Event ${event.name}:`, err)
+    );
+  if (event.once) client.once(event.name, listener);
+  else client.on(event.name, listener);
 }
 
 client.once("ready", async () => {
+  console.log(new Date().toLocaleString(), "Ready!");
+
+  // Columns added after the initial schema; the start script only runs `prisma generate`
+  for (const statement of [
+    `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "reference_type" TEXT;`,
+    `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "reference_link" TEXT;`,
+    `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "judge_details" JSONB;`,
+    `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "extra_info" TEXT;`,
+  ]) {
+    await prisma.$executeRawUnsafe(statement).catch((err) =>
+      console.error("Fehler bei der Datenbank-Migration:", err.message)
+    );
+  }
+
+  for (const { data } of loadModules("commands")) commands.push(data);
+  // Bulk overwrite, so removed commands also disappear from Discord
   try {
-    await prisma.$executeRawUnsafe(`ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "reference_type" TEXT;`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "reference_link" TEXT;`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "judge_details" JSONB;`);
-  } catch (e) {
-    // ignore
+    await client.application.commands.set(commands.map((c) => c.command));
+    console.log(
+      new Date().toLocaleString(),
+      `Commands registriert: ${commands.map((c) => `/${c.command.name}`).join(", ")}`
+    );
+  } catch (err) {
+    console.error("Fehler beim Registrieren der Commands:", err);
   }
 
-  //load command from command handler dir
-  // client.application.commands.set([]);
-  const commandFiles = fs
-    .readdirSync("./commands")
-    .filter((file) => file.endsWith(".js"));
-  for (const file of commandFiles) {
-    let data = require(`./commands/${file}`);
-    commands.push(data);
-    client.application.commands
-      .create(data.command)
-      .then(() =>
-        console.log(
-          new Date().toLocaleString(),
-          `Command registriert: /${data.command.name}`
-        )
-      )
-      .catch(console.error);
-  }
+  for (const { data } of loadModules("buttons")) buttons.push(data);
+  for (const { data } of loadModules("modals")) modals.push(data);
 
-  const scheduleFiles = fs
-    .readdirSync("./schedule")
-    .filter((file) => file.endsWith(".js"));
-  for (const file of scheduleFiles) {
-    let data = require(`./schedule/${file}`);
+  for (const { file, data } of loadModules("schedule")) {
     console.log(
       new Date().toLocaleString(),
       `Schedule registriert: ${file} (${data.time}ms)`
     );
-    setInterval(() => {
-      data.run(client, prisma);
-    }, data.time);
-  }
-
-  const buttonFiles = fs
-    .readdirSync("./buttons")
-    .filter((file) => file.endsWith(".js"));
-  for (const file of buttonFiles) {
-    let data = require(`./buttons/${file}`);
-    buttons.push(data);
-  }
-
-  const modalFiles = fs
-    .readdirSync("./modals")
-    .filter((file) => file.endsWith(".js"));
-  for (const file of modalFiles) {
-    let data = require(`./modals/${file}`);
-    modals.push(data);
+    const run = () =>
+      Promise.resolve(data.run(client, prisma)).catch((err) =>
+        console.error(`Fehler im Schedule ${file}:`, err)
+      );
+    run();
+    setInterval(run, data.time);
   }
 
   await api.start();
 });
 
+async function replyWithError(interaction, content) {
+  try {
+    if (interaction.deferred || interaction.replied) {
+      await interaction.followUp({ content, ephemeral: true });
+    } else {
+      await interaction.reply({ content, ephemeral: true });
+    }
+  } catch (err) {
+    console.error("Fehlermeldung konnte nicht gesendet werden:", err.message);
+  }
+}
+
 client.on("interactionCreate", async (interaction) => {
   if (interaction.isAutocomplete()) {
     const command = commands.find(
-      (command) => command.command.name === interaction.commandName
+      (c) => c.command.name === interaction.commandName
     );
     if (!command || !command.autocomplete) return;
     try {
@@ -113,53 +106,26 @@ client.on("interactionCreate", async (interaction) => {
     }
     return;
   }
-  if (interaction.isCommand()) {
-    const command = commands.find(
-      (command) => command.command.name === interaction.commandName
-    );
-    if (!command) return;
-    try {
-      await command.run(client, interaction, prisma);
-    } catch (error) {
-      console.error(error);
-      await interaction.reply({
-        content: "Beim Registrieren dieses Befehls ist ein Fehler aufgetreten!",
-        ephemeral: true,
-      });
-    }
-  }
-  if (interaction.isButton()) {
-    const button = buttons.find((button) =>
-      interaction.customId.startsWith(button.button.name)
-    );
-    if (!button) return;
-    try {
-      await button.run(client, interaction, prisma);
-    } catch (error) {
-      console.error(error);
-      await interaction.reply({
-        content:
-          "Beim Ausführen dieser Schaltfläche ist ein Fehler aufgetreten! ",
-        ephemeral: true,
-      });
-    }
-  }
 
-  //is modal
-  if (interaction.isModalSubmit()) {
-    const modal = modals.find((modal) =>
-      interaction.customId.startsWith(modal.modal.name)
-    );
-    if (!modal) return;
-    try {
-      await modal.run(client, interaction, prisma);
-    } catch (error) {
-      console.error(error);
-      await interaction.reply({
-        content: "Beim Ausführen dieses Modals ist ein Fehler aufgetreten! ",
-        ephemeral: true,
-      });
-    }
+  let handler;
+  let errorMessage;
+  if (interaction.isChatInputCommand()) {
+    handler = commands.find((c) => c.command.name === interaction.commandName);
+    errorMessage = "Beim Ausführen dieses Befehls ist ein Fehler aufgetreten!";
+  } else if (interaction.isButton()) {
+    handler = buttons.find((b) => interaction.customId.startsWith(b.button.name));
+    errorMessage = "Beim Ausführen dieser Schaltfläche ist ein Fehler aufgetreten!";
+  } else if (interaction.isModalSubmit()) {
+    handler = modals.find((m) => interaction.customId.startsWith(m.modal.name));
+    errorMessage = "Beim Ausführen dieses Formulars ist ein Fehler aufgetreten!";
+  }
+  if (!handler) return;
+
+  try {
+    await handler.run(client, interaction, prisma);
+  } catch (error) {
+    console.error(error);
+    await replyWithError(interaction, errorMessage);
   }
 });
 

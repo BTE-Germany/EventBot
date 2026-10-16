@@ -29,6 +29,8 @@ Sample response:
       "A": 0,
       "B": 0,
       "base_points": 0,
+      "reference_type": "Streetview",
+      "reference_link": "https://maps.google.com/...",
       "builder_id": "123456789012345678",
       "judges": [],
       "images": [
@@ -45,8 +47,7 @@ Sample response:
 Use this template to create a new endpoint
 
 ```javascript
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../../utils/prisma.js");
 
 module.exports = {
   path: "/endpoint",

@@ -1,75 +1,35 @@
+const { PAGE_SIZE, getRankedUsers, formatRanking, pageButton } = require("../utils/leaderboard.js");
+
 module.exports = {
     button: {
         name: "leader-"
     },
     run: async (client, interaction, prisma) => {
-        let pageNum = parseInt(interaction.customId.split("leader-")[1]);
+        const page = parseInt(interaction.customId.split("leader-")[1]);
+        const users = await getRankedUsers(prisma);
 
-        let users = await prisma.user.findMany();
-        users = users.map((user) => {
-            return {
-                id: user.id.toString(),
-                points: user.points,
-                minecraft_id: user.minecraft_id
-            };
-        });
-        users = users.sort((a, b) => b.points - a.points);
-        users = users.filter((user) => user.points > 0);
-        users = users.slice(pageNum * 10, pageNum * 10 + 10)
-
-        if(users.length === 0) {
-            interaction.reply({
+        if (users.length <= page * PAGE_SIZE) {
+            return interaction.reply({
                 content: "Keine weitere Seite verfügbar.",
                 ephemeral: true
             });
-            return
         }
 
-        let points = 0;
-        users.forEach((user) => {
-            points = points + user.points;
-        });
-
-        let userlist = "";
-        let increment = pageNum * 10 + 1;
-        users.forEach((user) => {
-            userlist += `${increment}. \`${user.minecraft_id}\`  |  ${user.points} Punkte \n`
-        });
-
-        interaction.reply({
-            "content": null,
-            "embeds": [
+        const hasNextPage = users.length > (page + 1) * PAGE_SIZE;
+        await interaction.reply({
+            embeds: [
                 {
-                    "title": `Leaderboard - Seite ${pageNum}`,
-                    "description": userlist,
-                    "color": 13697024,
-                    "footer": {
-                        "text": "Starte noch heute und kämpfe dich an die Spitze! Registrierung via /register"
+                    title: `Leaderboard - Seite ${page + 1}`,
+                    description: formatRanking(users, page),
+                    color: 13697024,
+                    footer: {
+                        text: "Starte noch heute und kämpfe dich an die Spitze! Registrierung via /register"
                     },
-                    "thumbnail": {
-                        "url": process.env.EVENT_IMG
-                    }
+                    thumbnail: process.env.EVENT_IMG ? { url: process.env.EVENT_IMG } : undefined
                 }
             ],
-            "attachments": [],
-            "ephemeral": true,
-            "components": [
-                {
-                    "type": 1,
-                    "components": [
-                        {
-                            "style": 3,
-                            "label": `Seite ${pageNum + 1}`,
-                            "custom_id": `leader-${pageNum + 1}`,
-                            "disabled": false,
-                            "emoji": {
-                                "name": `➡`
-                            },
-                            "type": 2
-                        }
-                    ]
-                }
-            ]
+            ephemeral: true,
+            components: hasNextPage ? [pageButton(page + 1)] : []
         });
     },
 };

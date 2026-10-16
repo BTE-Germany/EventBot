@@ -1,4 +1,3 @@
-version: '3'
 services:
 
   bot:
@@ -11,13 +10,10 @@ services:
     - .env
     environment:
       - DATABASE_URL=postgresql://prisma:prisma@postgres:5432/db
-    links:
-      - postgres
     restart: on-failure
 
   postgres:
     image: postgres:14.1-alpine
-    restart: always
     ports:
       -  "6970:5432"
     environment:

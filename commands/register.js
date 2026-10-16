@@ -13,37 +13,46 @@ module.exports = {
     ],
   },
   run: async (client, interaction, prisma) => {
-    prisma.user
-      .findFirst({
-        where: {
-          minecraft_id: interaction.options.getString("minecraft"),
-        },
-      })
-      .then(async (user) => {
-        if (user) {
-          await interaction.reply({ content: "Du bist bereits registriert.", ephemeral: true });
-        } else {
-          prisma.user
-            .create({
-              data: {
-                minecraft_id: interaction.options.getString("minecraft"),
-                id: BigInt(interaction.member.user.id),
-              },
-            })
-            .then(async () => {
-              await interaction.reply({ content: "Du wurdest erfolgreich registriert.", ephemeral: true });
-              console.log(
-                new Date().toLocaleString(),
-                `${interaction.member.user.tag} registriert (${interaction.member.user.id
-                }) as ${interaction.options.getString("minecraft")}`
-              );
-            })
-            .catch(async (e) => {
-              console.log(e);
-              console.log("Fehler beim Anlegen eines Benutzers.");
-              interaction.reply({ content: "Du bist bereits registriert.", ephemeral: true });
-            });
-        }
+    const minecraftName = interaction.options.getString("minecraft").trim();
+
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(minecraftName)) {
+      return interaction.reply({
+        content: "Ungültiger Minecraft-Name. Erlaubt sind 3–16 Zeichen (Buchstaben, Zahlen, `_`).",
+        ephemeral: true,
       });
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { id: BigInt(interaction.user.id) },
+    });
+    if (existingUser) {
+      return interaction.reply({
+        content: `Du bist bereits als \`${existingUser.minecraft_id}\` registriert.`,
+        ephemeral: true,
+      });
+    }
+
+    const nameTaken = await prisma.user.findFirst({
+      where: { minecraft_id: { equals: minecraftName, mode: "insensitive" } },
+    });
+    if (nameTaken) {
+      return interaction.reply({
+        content: "Dieser Minecraft-Name ist bereits von einem anderen Discord-Account registriert.",
+        ephemeral: true,
+      });
+    }
+
+    await prisma.user.create({
+      data: {
+        id: BigInt(interaction.user.id),
+        minecraft_id: minecraftName,
+      },
+    });
+
+    await interaction.reply({ content: "Du wurdest erfolgreich registriert.", ephemeral: true });
+    console.log(
+      new Date().toLocaleString(),
+      `${interaction.user.tag} (${interaction.user.id}) registriert als ${minecraftName}`
+    );
   },
 };

@@ -1,14 +1,33 @@
 require("dotenv").config();
+const { isJudge, denyJudge } = require("../utils/permissions.js");
+const { respondWithBuilds } = require("../utils/autocomplete.js");
+const { recalculateUserPoints } = require("../utils/points.js");
+const { deleteUploadedImage } = require("../utils/storage.js");
+
+async function deleteMessage(client, channelId, messageId) {
+  if (!channelId || !messageId) return;
+  try {
+    const channel = await client.channels.fetch(channelId);
+    const message = await channel.messages.fetch(messageId.toString());
+    await message.delete();
+  } catch (err) {
+    console.error(`Nachricht ${messageId} konnte nicht gelöscht werden:`, err.message);
+  }
+}
 
 module.exports = {
   command: {
     name: "delete",
-    description: "Delete a build!",
+    description: "Löscht ein Build.",
+    // Hidden for everyone except admins; grant the judge role access under
+    // Server Settings > Integrations > Bot
+    default_member_permissions: "0",
     options: [
       {
         name: "id",
         description: "Die ID des zu löschenden Builds.",
         type: 4,
+        autocomplete: true,
         required: true,
       },
       {
@@ -19,90 +38,38 @@ module.exports = {
       },
     ],
   },
+  autocomplete: async (client, interaction, prisma) => {
+    return respondWithBuilds(interaction, prisma);
+  },
   run: async (client, interaction, prisma) => {
-    prisma.build
-      .findUnique({
-        where: {
-          id: interaction.options.getInteger("id"),
-        },
-      })
-      .then(async (build) => {
-        if (!build) {
-          await interaction.reply({
-            content: "Dieses Build existiert nicht!",
-            ephemeral: true,
-          });
-        } else {
-          if (build.judges.length < 2) {
-            client.channels.cache
-              .get(process.env.SUBMISSION_CHANNEL)
-              .messages.fetch(build.message)
-              .then((msg) => msg.delete());
-            client.channels.cache
-              .get(process.env.JUDGE_CHANNEL)
-              .messages.fetch(build.judge_msg)
-              .then((msg) => msg.delete());
-            await prisma.build.delete({
-              where: {
-                id: interaction.options.getInteger("id"),
-              },
-            });
-            await interaction.reply({
-              content:
-                "Build mit folgendem Grund gelöscht: " +
-                interaction.options.getString("reason"),
-            });
-            console.log(
-              new Date().toLocaleString(),
-              `Judge ${interaction.member.user.id} hat build ${build.id
-              } mit folgendem Grund gelöscht: ${interaction.options.getString("reason")}`
-            );
-          } else {
-            client.channels.cache
-              .get(process.env.SUBMISSION_CHANNEL)
-              .messages.fetch(build.message)
-              .then((msg) => msg.delete());
-            client.channels.cache
-              .get(process.env.JUDGE_CHANNEL)
-              .messages.fetch(build.judge_msg)
-              .then((msg) => msg.delete());
-            await prisma.build
-              .delete({
-                where: {
-                  id: interaction.options.getInteger("id"),
-                },
-              })
-              .then(async () => {
-                await prisma.user
-                  .findUnique({
-                    where: {
-                      id: build.builder_id,
-                    },
-                  })
-                  .then(async (user) => {
-                    const pointsToDeduct = (build.base_points || 0) + (build.A || 0) + (build.B || 0);
-                    await prisma.user.update({
-                      where: {
-                        id: build.builder_id,
-                      },
-                      data: {
-                        points: Math.max(0, user.points - pointsToDeduct),
-                      },
-                    });
-                  });
-              });
-            await interaction.reply({
-              content:
-                "Build mit folgendem Grund gelöscht: " +
-                interaction.options.getString("reason"),
-            });
-            console.log(
-              new Date().toLocaleString(),
-              `Judge ${interaction.member.user.id} hat build ${build.id
-              } mit folgendem Grund gelöscht: ${interaction.options.getString("reason")}`
-            );
-          }
-        }
-      });
+    if (!isJudge(interaction)) return denyJudge(interaction);
+
+    const buildId = interaction.options.getInteger("id");
+    const reason = interaction.options.getString("reason");
+
+    await interaction.deferReply({ ephemeral: true });
+
+    const build = await prisma.build.findUnique({ where: { id: buildId } });
+    if (!build) {
+      return interaction.editReply({ content: "Dieses Build existiert nicht!" });
+    }
+
+    await prisma.build.delete({ where: { id: buildId } });
+    // Removes the build's points if it was already fully judged
+    await recalculateUserPoints(prisma, build.builder_id);
+
+    await deleteMessage(client, process.env.SUBMISSION_CHANNEL, build.message);
+    await deleteMessage(client, process.env.JUDGE_CHANNEL, build.judge_msg);
+    for (const image of build.images) {
+      await deleteUploadedImage(image);
+    }
+
+    console.log(
+      new Date().toLocaleString(),
+      `Judge ${interaction.user.username} (${interaction.user.id}) hat Build #${buildId} gelöscht. Grund: ${reason}`
+    );
+    await interaction.editReply({
+      content: `Build **#${buildId}** mit folgendem Grund gelöscht: ${reason}`,
+    });
   },
 };

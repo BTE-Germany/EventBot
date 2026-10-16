@@ -1,72 +1,5 @@
 require("dotenv").config();
 
-function generateBuildingScoreChart(build) {
-  const g = build.base_points || 0;
-  const a = build.B || 0;
-  const t = build.A || 0;
-  const total = Number((g + a + t).toFixed(2));
-
-  const chartConfig = {
-    type: "horizontalBar",
-    data: {
-      labels: [
-        `Grundpunkte (${g}/2)`,
-        `Aufwand (${a}/6)`,
-        `Technik & Details (${t}/10)`,
-      ],
-      datasets: [
-        {
-          label: "Erreichte Punkte",
-          data: [g, a, t],
-          backgroundColor: [
-            "rgba(46, 204, 113, 0.85)",
-            "rgba(52, 152, 219, 0.85)",
-            "rgba(155, 89, 182, 0.85)",
-          ],
-          borderColor: ["#2ecc71", "#3498db", "#9b59b6"],
-          borderWidth: 1.5,
-        },
-        {
-          label: "Maximal möglich",
-          data: [Math.max(0, 2 - g), Math.max(0, 6 - a), Math.max(0, 10 - t)],
-          backgroundColor: "rgba(255, 255, 255, 0.08)",
-          borderColor: "rgba(255, 255, 255, 0.15)",
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      title: {
-        display: true,
-        text: `Build #${build.id} • Ergebnis: ${total} / 18 Punkte`,
-        fontColor: "#ffffff",
-        fontSize: 15,
-      },
-      legend: { display: false },
-      scales: {
-        xAxes: [
-          {
-            stacked: true,
-            ticks: { fontColor: "#b9bbbe", min: 0, max: 10, stepSize: 2 },
-            gridLines: { color: "rgba(255, 255, 255, 0.1)" },
-          },
-        ],
-        yAxes: [
-          {
-            stacked: true,
-            ticks: { fontColor: "#ffffff", fontStyle: "bold" },
-            gridLines: { display: false },
-          },
-        ],
-      },
-    },
-  };
-
-  return `https://quickchart.io/chart?bkg=%232f3136&w=550&h=200&c=${encodeURIComponent(
-    JSON.stringify(chartConfig)
-  )}`;
-}
-
 function generateBuildingEmbeds(build, user, isJudgeView = false) {
   const judgeCount = build.judges ? build.judges.length : 0;
   const isCompleted = judgeCount >= 2;
@@ -177,9 +110,18 @@ function generateBuildingEmbeds(build, user, isJudgeView = false) {
     }
   }
 
-  // Check for any correction log
+  // Extra info from the builder (via the "Zusätzliche Informationen" button) is meant for judges
+  if (isJudgeView && build.extra_info) {
+    fields.push({
+      name: "📍 Zusätzliche Informationen",
+      value: build.extra_info.slice(0, 1024),
+      inline: false,
+    });
+  }
+
+  // Correction log is internal (corrector + reason), only show it to judges
   const corrections = existingDetails.filter((d) => d.action === "CORRECTION");
-  if (corrections.length > 0) {
+  if (isJudgeView && corrections.length > 0) {
     const lastCorr = corrections[corrections.length - 1];
     fields.push({
       name: "✏️ Letzte Korrektur",
@@ -201,38 +143,40 @@ function generateBuildingEmbeds(build, user, isJudgeView = false) {
 
   const embeds = [primaryEmbed];
 
-  if (build.images && build.images.length > 0 && build.images[0] !== "loading") {
-    primaryEmbed.image = { url: build.images[0] };
+  // Embeds sharing the same url are shown as one gallery (max. 4 images)
+  const images = (build.images || []).filter((img) => img && img !== "loading");
+  if (images.length > 0) {
+    primaryEmbed.image = { url: images[0] };
   }
-
-  // Add additional screenshots as gallery embeds
-  // (Discord shows max. 4 images per gallery, so keep one slot free for the score chart)
-  const maxImages = isCompleted ? 3 : 4;
-  if (build.images && build.images.length > 1) {
-    for (let i = 1; i < Math.min(build.images.length, maxImages); i++) {
-      if (build.images[i] && build.images[i] !== "loading") {
-        embeds.push({
-          url: "https://bte-germany.de",
-          image: { url: build.images[i] },
-        });
-      }
-    }
-  }
-
-  // If completed, add auto-generated score graphic as an additional image
-  if (isCompleted) {
-    const chartUrl = generateBuildingScoreChart(build);
-    if (primaryEmbed.image) {
-      embeds.push({
-        url: "https://bte-germany.de",
-        image: { url: chartUrl },
-      });
-    } else {
-      primaryEmbed.image = { url: chartUrl };
-    }
+  for (const image of images.slice(1, 4)) {
+    embeds.push({
+      url: "https://bte-germany.de",
+      image: { url: image },
+    });
   }
 
   return embeds;
+}
+
+function submissionComponents(buildId) {
+  return [
+    {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          style: 2,
+          label: "Zusätzliche Informationen",
+          custom_id: `info_${buildId}`,
+          emoji: "📍",
+        },
+      ],
+    },
+  ];
+}
+
+function judgePanelContent(build) {
+  return build.judges.length < 2 ? `<@&${process.env.PING_ROLE}>` : " ";
 }
 
 async function refreshBuildingPanel(client, prisma, buildId) {
@@ -264,20 +208,7 @@ async function refreshBuildingPanel(client, prisma, buildId) {
           await msg.edit({
             content: " ",
             embeds: submissionEmbeds,
-            components: [
-              {
-                type: 1,
-                components: [
-                  {
-                    type: 2,
-                    style: 2,
-                    label: "Zusätzliche Informationen",
-                    custom_id: `info_${build.id}`,
-                    emoji: "📍",
-                  },
-                ],
-              },
-            ],
+            components: submissionComponents(build.id),
           });
           updatedSubmission = true;
         }
@@ -295,7 +226,7 @@ async function refreshBuildingPanel(client, prisma, buildId) {
         const msg = await judgeChannel.messages.fetch(build.judge_msg.toString());
         if (msg) {
           await msg.edit({
-            content: build.judges.length < 2 ? `<@&${process.env.PING_ROLE}>` : " ",
+            content: judgePanelContent(build),
             embeds: judgeEmbeds,
           });
           updatedJudge = true;
@@ -316,6 +247,7 @@ async function refreshBuildingPanel(client, prisma, buildId) {
 
 module.exports = {
   generateBuildingEmbeds,
-  generateBuildingScoreChart,
+  submissionComponents,
+  judgePanelContent,
   refreshBuildingPanel,
 };

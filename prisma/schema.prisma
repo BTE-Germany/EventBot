@@ -25,6 +25,7 @@ model Build {
   reference_type    String?
   reference_link    String?
   judge_details     Json?
+  extra_info        String?
   builder_id        BigInt   @db.BigInt
   judges            String[]
   images            String[]

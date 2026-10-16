@@ -1,7 +1,22 @@
+require("dotenv").config();
+const { isJudge, denyJudge } = require("../utils/permissions.js");
+const { refreshBuildingPanel } = require("../utils/buildingPanel.js");
+const { respondWithBuilds } = require("../utils/autocomplete.js");
+const {
+  MAX_AUFWAND,
+  MAX_DETAILS,
+  recalculateUserPoints,
+  buildTotal,
+  scoreChoices,
+} = require("../utils/points.js");
+
 module.exports = {
   command: {
     name: "correct",
     description: "Korrigiert nachträglich die Bewertung eines Builds.",
+    // Hidden for everyone except admins; grant the judge role access under
+    // Server Settings > Integrations > Bot
+    default_member_permissions: "0",
     options: [
       {
         name: "id",
@@ -28,103 +43,33 @@ module.exports = {
       },
       {
         name: "aufwand_komplexitaet",
-        description: "Neuer Aufwand & Komplexität (0 bis 6 Punkte)",
+        description: `Neuer Aufwand & Komplexität (0 bis ${MAX_AUFWAND} Punkte)`,
         type: 10,
-        choices: [
-          { name: "0", value: 0 },
-          { name: "0.5", value: 0.5 },
-          { name: "1", value: 1 },
-          { name: "1.5", value: 1.5 },
-          { name: "2", value: 2 },
-          { name: "2.5", value: 2.5 },
-          { name: "3", value: 3 },
-          { name: "3.5", value: 3.5 },
-          { name: "4", value: 4 },
-          { name: "4.5", value: 4.5 },
-          { name: "5", value: 5 },
-          { name: "5.5", value: 5.5 },
-          { name: "6", value: 6 },
-        ],
+        choices: scoreChoices(MAX_AUFWAND),
         required: false,
       },
       {
         name: "technik_farben_details",
-        description: "Neue Technik, Farben & Details (0 bis 10 Punkte)",
+        description: `Neue Technik, Farben & Details (0 bis ${MAX_DETAILS} Punkte)`,
         type: 10,
-        choices: [
-          { name: "0", value: 0 },
-          { name: "0.5", value: 0.5 },
-          { name: "1", value: 1 },
-          { name: "1.5", value: 1.5 },
-          { name: "2", value: 2 },
-          { name: "2.5", value: 2.5 },
-          { name: "3", value: 3 },
-          { name: "3.5", value: 3.5 },
-          { name: "4", value: 4 },
-          { name: "4.5", value: 4.5 },
-          { name: "5", value: 5 },
-          { name: "5.5", value: 5.5 },
-          { name: "6", value: 6 },
-          { name: "6.5", value: 6.5 },
-          { name: "7", value: 7 },
-          { name: "7.5", value: 7.5 },
-          { name: "8", value: 8 },
-          { name: "8.5", value: 8.5 },
-          { name: "9", value: 9 },
-          { name: "9.5", value: 9.5 },
-          { name: "10", value: 10 },
-        ],
+        choices: scoreChoices(MAX_DETAILS),
         required: false,
       },
     ],
   },
   autocomplete: async (client, interaction, prisma) => {
-    try {
-      const focusedOption = interaction.options.getFocused(true);
-      if (focusedOption.name === "id") {
-        const builds = await prisma.build.findMany({
-          orderBy: { id: "desc" },
-          take: 50,
-        });
-        const matching = builds
-          .filter(
-            (b) =>
-              b.judges.length > 0 &&
-              (!focusedOption.value ||
-                b.id.toString().includes(focusedOption.value.toString()))
-          )
-          .slice(0, 25);
-
-        return interaction.respond(
-          matching.map((b) => ({
-            name: `#${b.id} (${b.judges.length}/2 Judges) - ${b.location ? b.location.slice(0, 45) : ""}`,
-            value: b.id,
-          }))
-        );
-      }
-    } catch (err) {
-      console.error("Autocomplete Fehler in /correct:", err);
-    }
+    return respondWithBuilds(interaction, prisma, { filter: "judged" });
   },
   run: async (client, interaction, prisma) => {
-    if (
-      !interaction.member.roles.cache.some(
-        (role) => role.id === process.env.PING_ROLE
-      )
-    ) {
-      return interaction.reply({
-        content: "Du bist kein Judge.",
-        ephemeral: true,
-      });
-    }
+    if (!isJudge(interaction)) return denyJudge(interaction);
 
     const buildId = interaction.options.getInteger("id");
     const reason = interaction.options.getString("reason");
     const newGrund = interaction.options.getNumber("grundpunkte");
-    const newAufwandInput = interaction.options.getNumber("aufwand_komplexitaet");
-    const newDetailsInput = interaction.options.getNumber("technik_farben_details");
+    const newAufwand = interaction.options.getNumber("aufwand_komplexitaet");
+    const newDetails = interaction.options.getNumber("technik_farben_details");
 
-    if (newGrund === null && newAufwandInput === null && newDetailsInput === null) {
+    if (newGrund === null && newAufwand === null && newDetails === null) {
       return interaction.reply({
         content:
           "Bitte gib mindestens eine Kategorie an, die du korrigieren möchtest (Grundpunkte, Aufwand oder Technik).",
@@ -132,37 +77,29 @@ module.exports = {
       });
     }
 
-    const build = await prisma.build.findUnique({
-      where: { id: buildId },
-    });
+    await interaction.deferReply({ ephemeral: true });
 
+    const build = await prisma.build.findUnique({ where: { id: buildId } });
     if (!build) {
-      return interaction.reply({
-        content: "Build nicht gefunden.",
-        ephemeral: true,
-      });
+      return interaction.editReply({ content: "Build nicht gefunden." });
     }
-
     if (build.judges.length === 0) {
-      return interaction.reply({
+      return interaction.editReply({
         content: "Dieses Build wurde noch gar nicht bewertet. Nutze `/judge`.",
-        ephemeral: true,
       });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: build.builder_id },
-    });
+    const updatedBase = newGrund ?? build.base_points;
+    const updatedAufwand = newAufwand ?? build.B;
+    const updatedDetails = newDetails ?? build.A;
+    const oldTotal = buildTotal(build);
 
-    const existingDetails = Array.isArray(build.judge_details)
-      ? build.judge_details
-      : [];
-
+    const existingDetails = Array.isArray(build.judge_details) ? build.judge_details : [];
     const correctionEntry = {
       action: "CORRECTION",
-      corrector_id: interaction.user.id.toString(),
-      corrector_name: interaction.member.user.username,
-      reason: reason,
+      corrector_id: interaction.user.id,
+      corrector_name: interaction.user.username,
+      reason,
       old_values: {
         grundpunkte: build.base_points,
         aufwand: build.B,
@@ -171,79 +108,13 @@ module.exports = {
       timestamp: new Date().toISOString(),
     };
 
-    const updatedBase = newGrund !== null ? newGrund : build.base_points;
-    const updatedAufwand = newAufwandInput !== null ? newAufwandInput : build.B;
-    const updatedDetails = newDetailsInput !== null ? newDetailsInput : build.A;
-
-    // Build only judged by 1 Judge
-    if (build.judges.length === 1) {
-      await prisma.build.update({
-        where: { id: buildId },
-        data: {
-          base_points: updatedBase,
-          B: updatedAufwand,
-          A: updatedDetails,
-          judge_details: [...existingDetails, correctionEntry],
-        },
-      });
-
-      let description = `Koordinaten: ${build.location}`;
-      if (build.reference_type) description += `\nReferenz: ${build.reference_type}`;
-      if (build.reference_link) description += `\nQuelle: ${build.reference_link}`;
-
-      let embeds = [
-        {
-          title: `#${build.id.toString()} (Korrigiert)`,
-          description: description,
-          url: "https://bte-germany.de",
-          color: 16761344,
-          author: {
-            name: `${user ? user.minecraft_id : "Unbekannt"}`,
-          },
-          fields: [
-            {
-              name: "📋 Bewertung (1/2 Judges - Korrigiert)",
-              value: `• **Judge 1** (<@${build.judges[0]}>):\n  - Grundpunkte: **${updatedBase}** (${updatedBase === 2 ? "Gebäude" : "Infrastruktur"})\n  - Aufwand & Komplexität: **${updatedAufwand}** / 6\n  - Technik, Farben & Details: **${updatedDetails}** / 10\n  - Zwischenstand: **${updatedBase + updatedAufwand + updatedDetails}** / 18`,
-            },
-            {
-              name: "✏️ Korrektur-Notiz",
-              value: `Korrigiert von: <@${interaction.user.id}>\nGrund: ${reason}`,
-            },
-          ],
-        },
-      ];
-
-      build.images.forEach((image) => {
-        embeds.push({
-          url: "https://bte-germany.de",
-          image: { url: image },
-        });
-      });
-
-      await client.channels.cache
-        .get(process.env.JUDGE_CHANNEL)
-        .messages.fetch(build.judge_msg.toString())
-        .then((message) => {
-          message.edit({
-            content: `<@&${process.env.PING_ROLE}>`,
-            embeds: embeds,
-          });
-        });
-
-      console.log(
-        new Date().toLocaleString(),
-        `[KORREKTUR 1/2] Build #${build.id} korrigiert von ${interaction.member.user.username}: G=${updatedBase}, A=${updatedAufwand}, T=${updatedDetails}. Grund: ${reason}`
-      );
-
-      return interaction.reply({
-        content: `Build **#${buildId}** (Zwischenbewertung 1/2) erfolgreich korrigiert!\n• Grund: ${reason}`,
-      });
-    }
-
-    // Build fully judged (judges.length >= 2)
-    const oldTotal = build.base_points + build.B + build.A;
-    const newTotal = updatedBase + updatedAufwand + updatedDetails;
-    const pointDiff = newTotal - oldTotal;
+    // With only one judge so far, the stored values are judge 1's own scores,
+    // which judge 2 will average with, so keep judge 1's entry in sync
+    const judgeDetails = [...existingDetails, correctionEntry].map((d) =>
+      build.judges.length === 1 && !d.action && d.judge_id === build.judges[0]
+        ? { ...d, grundpunkte: updatedBase, aufwand: updatedAufwand, details: updatedDetails }
+        : d
+    );
 
     await prisma.build.update({
       where: { id: buildId },
@@ -251,106 +122,29 @@ module.exports = {
         base_points: updatedBase,
         B: updatedAufwand,
         A: updatedDetails,
-        judge_details: [...existingDetails, correctionEntry],
+        judge_details: judgeDetails,
       },
     });
 
-    if (user) {
-      await prisma.user.update({
-        where: { id: build.builder_id },
-        data: {
-          points: Math.max(0, user.points + pointDiff),
-        },
-      });
+    if (build.judges.length >= 2) {
+      await recalculateUserPoints(prisma, build.builder_id);
     }
+    const { build: updated } = await refreshBuildingPanel(client, prisma, buildId);
 
-    let description = `Koordinaten: ${build.location}`;
-    if (build.reference_type) description += `\nReferenz: ${build.reference_type}`;
-    if (build.reference_link) description += `\nQuelle: ${build.reference_link}`;
-
-    let submissionEmbeds = [
-      {
-        title: `#${build.id.toString()}`,
-        description: description,
-        url: "https://bte-germany.de",
-        color: 7119627,
-        author: {
-          name: `${user ? user.minecraft_id : "Unbekannt"}`,
-        },
-        fields: [
-          {
-            name: "Bewertung (Korrigiert)",
-            value: `Grundpunkte: **${updatedBase}** (${updatedBase === 2 ? "Gebäude" : "Infrastruktur"})\nAufwand & Komplexität: **${updatedAufwand}** / 6\nTechnik, Farben & Details: **${updatedDetails}** / 10\nGesamt: **${newTotal}** / 18 Punkte`,
-          },
-        ],
-      },
-    ];
-
-    let judgeEmbeds = [
-      {
-        title: `#${build.id.toString()}`,
-        description:
-          description +
-          `\nBewertet von: <@${build.judges[0]}> und <@${build.judges[1]}>` +
-          `\nZuletzt korrigiert von: <@${interaction.user.id}>`,
-        url: "https://bte-germany.de",
-        color: 7119627,
-        author: {
-          name: `${user ? user.minecraft_id : "Unbekannt"}`,
-        },
-        fields: [
-          {
-            name: "📊 Endergebnis (Korrigiert)",
-            value: `• Grundpunkte: **${updatedBase}** (${updatedBase === 2 ? "Gebäude" : "Infrastruktur"})\n• Aufwand & Komplexität: **${updatedAufwand}** / 6\n• Technik, Farben & Details: **${updatedDetails}** / 10\n• **Gesamtergebnis: ${newTotal} / 18 Punkte**`,
-          },
-          {
-            name: "✏️ Korrektur-Protokoll",
-            value: `• Vorher: ${oldTotal} Pkt ➔ Nachher: **${newTotal} Pkt** (${pointDiff >= 0 ? "+" : ""}${pointDiff})\n• Durch: <@${interaction.user.id}>\n• Grund: *${reason}*`,
-          },
-        ],
-      },
-    ];
-
-    build.images.forEach((image) => {
-      submissionEmbeds.push({
-        url: "https://bte-germany.de",
-        image: { url: image },
-      });
-      judgeEmbeds.push({
-        url: "https://bte-germany.de",
-        image: { url: image },
-      });
-    });
-
-    await client.channels.cache
-      .get(process.env.SUBMISSION_CHANNEL)
-      .messages.fetch(build.message.toString())
-      .then((message) => {
-        message.edit({
-          content: " ",
-          embeds: submissionEmbeds,
-        });
-      });
-
-    await client.channels.cache
-      .get(process.env.JUDGE_CHANNEL)
-      .messages.fetch(build.judge_msg.toString())
-      .then((message) => {
-        message.edit({
-          content: " ",
-          embeds: judgeEmbeds,
-        });
-      });
-
+    const newTotal = buildTotal(updated);
+    const pointDiff = Number((newTotal - oldTotal).toFixed(2));
     console.log(
       new Date().toLocaleString(),
-      `[KORREKTUR] Build #${build.id} korrigiert von ${interaction.member.user.username}:\n` +
-      `  Alte Punkte: ${oldTotal} -> Neue Punkte: ${newTotal} (${pointDiff >= 0 ? "+" : ""}${pointDiff})\n` +
-      `  Grund: ${reason}`
+      `[KORREKTUR] Build #${buildId} korrigiert von ${interaction.user.username}: ${oldTotal} -> ${newTotal} Pkt. Grund: ${reason}`
     );
 
-    interaction.reply({
-      content: `Build **#${buildId}** erfolgreich korrigiert!\n• Alte Punkte: **${oldTotal}**\n• Neue Punkte: **${newTotal}** (${pointDiff >= 0 ? "+" : ""}${pointDiff})\n• Grund: *${reason}*`,
+    await interaction.editReply({
+      content:
+        `Build **#${buildId}** erfolgreich korrigiert!\n` +
+        `• Alte Punkte: **${oldTotal}**\n` +
+        `• Neue Punkte: **${newTotal}** (${pointDiff >= 0 ? "+" : ""}${pointDiff})\n` +
+        (build.judges.length < 2 ? "• *Zwischenbewertung, Punkte werden erst nach dem 2. Judge vergeben.*\n" : "") +
+        `• Grund: *${reason}*`,
     });
   },
 };

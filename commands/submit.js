@@ -1,20 +1,6 @@
 require("dotenv").config();
-const crypto = require("crypto");
-
-let containerClient = null;
-if (process.env.AZURE_STORAGE_CONNECTION_STRING && process.env.CONTAINER_NAME) {
-  try {
-    const { BlobServiceClient } = require("@azure/storage-blob");
-    const blobServiceClient = BlobServiceClient.fromConnectionString(
-      process.env.AZURE_STORAGE_CONNECTION_STRING
-    );
-    containerClient = blobServiceClient.getContainerClient(
-      process.env.CONTAINER_NAME
-    );
-  } catch (e) {
-    console.error("Fehler beim Initialisieren von Azure Blob Storage:", e);
-  }
-}
+const { isImage } = require("../utils/storage.js");
+const { createSubmission } = require("../utils/submission.js");
 
 module.exports = {
   command: {
@@ -65,11 +51,8 @@ module.exports = {
     ],
   },
   run: async (client, interaction, prisma) => {
-    // 1. Check if user is registered
     const dbUser = await prisma.user.findUnique({
-      where: {
-        id: BigInt(interaction.user.id),
-      },
+      where: { id: BigInt(interaction.user.id) },
     });
 
     if (!dbUser) {
@@ -78,136 +61,45 @@ module.exports = {
         ephemeral: true,
       });
     }
+    if (dbUser.banned) {
+      return interaction.reply({
+        content: "Du bist vom Event ausgeschlossen.",
+        ephemeral: true,
+      });
+    }
 
-    // 2. Validate Link (Quellenpflicht)
+    // Quellenpflicht: a valid link to the reference is required
     const link = interaction.options.getString("link").trim();
-    const urlPattern = /^https?:\/\/.+/i;
-    if (!urlPattern.test(link)) {
+    if (!/^https?:\/\/\S+$/i.test(link)) {
       return interaction.reply({
         content: "❌ **Ungültiger Link!** Die Quellenpflicht verlangt einen gültigen Link (z. B. `https://maps.google.com/...`).",
         ephemeral: true,
       });
     }
 
-    const koordinaten = interaction.options.getString("koordinaten").trim();
-    const referenz = interaction.options.getString("referenz");
+    const attachments = ["bild1", "bild2", "bild3"]
+      .map((name) => interaction.options.getAttachment(name))
+      .filter(Boolean);
+    if (!attachments.every(isImage)) {
+      return interaction.reply({
+        content: "❌ Bitte lade nur Bilder (PNG, JPG, GIF, WEBP) hoch.",
+        ephemeral: true,
+      });
+    }
 
     await interaction.deferReply({ ephemeral: true });
 
-    // 3. Collect attachments
-    const rawAttachments = [
-      interaction.options.getAttachment("bild1"),
-      interaction.options.getAttachment("bild2"),
-      interaction.options.getAttachment("bild3"),
-    ].filter(Boolean);
-
-    // 4. Create Build in DB
-    const build = await prisma.build.create({
-      data: {
-        builder_id: BigInt(interaction.user.id),
-        location: koordinaten,
-        reference_type: referenz,
-        reference_link: link,
-        images: ["loading"],
-      },
+    const { build } = await createSubmission({
+      client,
+      prisma,
+      dbUser,
+      location: interaction.options.getString("koordinaten").trim(),
+      referenceType: interaction.options.getString("referenz"),
+      referenceLink: link,
+      attachments,
     });
 
-    let images = [];
-    let embeds = [
-      {
-        title: `#${build.id}`,
-        description: `Koordinaten: ${build.location}\nReferenz: **${referenz}**\nQuelle: ${link}`,
-        url: "https://bte-germany.de",
-        author: {
-          name: `${dbUser.minecraft_id}`,
-        },
-      },
-    ];
-
-    for (const image of rawAttachments) {
-      if (containerClient) {
-        try {
-          let uuid = crypto.randomUUID();
-          const response = await fetch(image.url);
-          const buffer = await response.arrayBuffer();
-          let filetype = image.name.match(/\.([^/?#]+)(?=[?#]|$)/)?.[1] || "png";
-          const blockBlobClient = containerClient.getBlockBlobClient(
-            `${interaction.user.id}/${uuid}.${filetype}`
-          );
-          await blockBlobClient.uploadData(buffer, buffer.byteLength);
-          const cdnUrl = `${process.env.CDN_URL}/${process.env.CONTAINER_NAME}/${interaction.user.id}/${uuid}.${filetype}`;
-          embeds.push({
-            url: "https://bte-germany.de",
-            image: { url: cdnUrl },
-          });
-          images.push(cdnUrl);
-          continue;
-        } catch (uploadErr) {
-          console.error("Azure Upload Fehler in /submit, fallback auf Discord-URL:", uploadErr);
-        }
-      }
-      embeds.push({
-        url: "https://bte-germany.de",
-        image: { url: image.url },
-      });
-      images.push(image.url);
-    }
-
-    await prisma.build.update({
-      where: { id: build.id },
-      data: { images: images },
-    });
-
-    // 5. Send message to SUBMISSION_CHANNEL
-    const submissionChannel = client.channels.cache.get(process.env.SUBMISSION_CHANNEL);
-    let subMessageId = null;
-    if (submissionChannel) {
-      const sentMsg = await submissionChannel.send({
-        content: " ",
-        embeds: embeds,
-        components: [
-          {
-            type: 1,
-            components: [
-              {
-                type: 2,
-                style: 2,
-                label: "Zusätzliche Informationen",
-                custom_id: `info_${build.id}`,
-                emoji: "📍",
-              },
-            ],
-          },
-        ],
-      });
-      subMessageId = sentMsg.id;
-    }
-
-    // 6. Send message to JUDGE_CHANNEL
-    const judgeChannel = client.channels.cache.get(process.env.JUDGE_CHANNEL);
-    let judgeMsgId = null;
-    if (judgeChannel) {
-      const sentJudgeMsg = await judgeChannel.send({
-        content: `<@&${process.env.PING_ROLE}>`,
-        embeds: embeds,
-      });
-      judgeMsgId = sentJudgeMsg.id;
-    }
-
-    await prisma.build.update({
-      where: { id: build.id },
-      data: {
-        message: subMessageId ? BigInt(subMessageId) : null,
-        judge_msg: judgeMsgId ? BigInt(judgeMsgId) : null,
-      },
-    });
-
-    console.log(
-      new Date().toLocaleString(),
-      `Neuer Build #${build.id} über /submit eingereicht von ${dbUser.minecraft_id} (Referenz: ${referenz}, Link: ${link})`
-    );
-
-    interaction.editReply({
+    await interaction.editReply({
       content: `✅ Dein Build **#${build.id}** wurde erfolgreich mit Quellenangabe eingereicht!`,
     });
   },

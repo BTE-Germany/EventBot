@@ -1,13 +1,18 @@
 const { refreshBuildingPanel } = require("../utils/buildingPanel.js");
+const { respondWithBuilds } = require("../utils/autocomplete.js");
+const { isJudge, denyJudge } = require("../utils/permissions.js");
 
 module.exports = {
   command: {
     name: "refresh",
     description: "Aktualisiert das Building-Panel in #submissions und #judge.",
+    // Hidden for everyone except admins; grant the judge role access under
+    // Server Settings > Integrations > Bot
+    default_member_permissions: "0",
     options: [
       {
         name: "id",
-        description: "Die ID des zu aktualisierenden Builds (optional für alle offenen Builds)",
+        description: "Die ID des zu aktualisierenden Builds (ohne ID: die letzten 10 Builds)",
         type: 4,
         autocomplete: true,
         required: false,
@@ -15,43 +20,10 @@ module.exports = {
     ],
   },
   autocomplete: async (client, interaction, prisma) => {
-    try {
-      const focusedOption = interaction.options.getFocused(true);
-      if (focusedOption.name === "id") {
-        const builds = await prisma.build.findMany({
-          orderBy: { id: "desc" },
-          take: 50,
-        });
-        const filtered = builds
-          .filter(
-            (b) =>
-              !focusedOption.value ||
-              b.id.toString().includes(focusedOption.value.toString())
-          )
-          .slice(0, 25);
-
-        return interaction.respond(
-          filtered.map((b) => ({
-            name: `#${b.id} (${b.judges.length}/2 Judges) - ${b.location ? b.location.slice(0, 45) : ""}`,
-            value: b.id,
-          }))
-        );
-      }
-    } catch (err) {
-      console.error("Autocomplete Fehler in /refresh:", err);
-    }
+    return respondWithBuilds(interaction, prisma);
   },
   run: async (client, interaction, prisma) => {
-    if (
-      !interaction.member.roles.cache.some(
-        (role) => role.id === process.env.PING_ROLE
-      )
-    ) {
-      return interaction.reply({
-        content: "Du bist kein Judge.",
-        ephemeral: true,
-      });
-    }
+    if (!isJudge(interaction)) return denyJudge(interaction);
 
     const buildId = interaction.options.getInteger("id");
     await interaction.deferReply({ ephemeral: true });
@@ -67,7 +39,7 @@ module.exports = {
           content: `✅ **Building-Panel für Build #${buildId} aktualisiert:**\n• ${subStatus}\n• ${judgeStatus}`,
         });
       } else {
-        // Refresh all builds that have less than 2 judges or the last 10 builds
+        // Refresh the last 10 builds
         const builds = await prisma.build.findMany({
           orderBy: { id: "desc" },
           take: 10,

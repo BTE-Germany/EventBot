@@ -1,79 +1,42 @@
+const { PAGE_SIZE, getRankedUsers, formatRanking, pageButton } = require("../utils/leaderboard.js");
+
 module.exports = {
   time: 300000,
   run: async (client, prisma) => {
-    console.log(new Date().toLocaleString(), "Leaderboard wird geupdated...");
-    let users = await prisma.user.findMany();
-    users = users.map((user) => {
-      return {
-        id: user.id.toString(),
-        points: user.points,
-        minecraft_id: user.minecraft_id,
-      };
-    });
-    users = users.sort((a, b) => b.points - a.points);
+    if (!process.env.LEADERBOARD_CHANNEL || !process.env.LEADERBOARD_MESSAGE) {
+      return;
+    }
 
-    const builds = await prisma.build.findMany();
-    let points = 0;
-    users.forEach((user) => {
-      points = points + user.points;
-    });
+    console.log(new Date().toLocaleString(), "Leaderboard wird aktualisiert...");
+    const users = await getRankedUsers(prisma);
+    const [buildCount, userCount] = await Promise.all([
+      prisma.build.count(),
+      prisma.user.count({ where: { banned: false } }),
+    ]);
+    const points = users.reduce((sum, user) => sum + user.points, 0);
 
-    await client.channels.cache
-      .get(process.env.LEADERBOARD_CHANNEL)
-      .messages.fetch(process.env.LEADERBOARD_MESSAGE)
-      .then(async (message) => {
-        message.edit({
-          content: null,
-          embeds: [
+    const channel = await client.channels.fetch(process.env.LEADERBOARD_CHANNEL);
+    const message = await channel.messages.fetch(process.env.LEADERBOARD_MESSAGE);
+    await message.edit({
+      content: null,
+      embeds: [
+        {
+          title: "Leaderboard",
+          description: formatRanking(users, 0) || "Noch keine Punkte vergeben.",
+          color: 13697024,
+          fields: [
             {
-              title: "Leaderboard",
-              description: `
-              :first_place: \`${users[0]?.minecraft_id}\`  |  ${users[0]?.points} Punkte \n
-              :second_place: \`${users[1]?.minecraft_id}\`  |  ${users[1]?.points} Punkte \n
-              :third_place: \`${users[2]?.minecraft_id}\`  |  ${users[2]?.points} Punkte \n
-              4​. \`${users[3]?.minecraft_id}\`  |  ${users[3]?.points} Punkte \n
-              5​. \`${users[4]?.minecraft_id}\`  |  ${users[4]?.points} Punkte \n
-              6​. \`${users[5]?.minecraft_id}\`  |  ${users[5]?.points} Punkte \n
-              7​. \`${users[6]?.minecraft_id}\`  |  ${users[6]?.points} Punkte \n
-              8​. \`${users[7]?.minecraft_id}\`  |  ${users[7]?.points} Punkte \n
-              9​. \`${users[8]?.minecraft_id}\`  |  ${users[8]?.points} Punkte \n
-              10​. \`${users[9]?.minecraft_id}\`  |  ${users[9]?.points} Punkte`,
-              color: 13697024,
-              fields: [
-                {
-                  name: "Statistik",
-                  value: `Builds gesamt: \`${builds.length}\` \n
-                  Registrierte Builder: \`${users.length}\` \n
-                  Punkte gesamt: \`${points}\``,
-                },
-              ],
-              footer: {
-                text: "Starte noch heute und kämpfe dich an die Spitze! Registrierung via /register",
-              },
-              thumbnail: {
-                url: process.env.EVENT_IMG,
-              },
+              name: "Statistik",
+              value: `Builds gesamt: \`${buildCount}\`\nRegistrierte Builder: \`${userCount}\`\nPunkte gesamt: \`${points}\``,
             },
           ],
-          attachments: [],
-          components: [
-            {
-              type: 1,
-              components: [
-                {
-                  style: 3,
-                  label: `Nächste Seite`,
-                  custom_id: `leader-1`,
-                  disabled: false,
-                  emoji: {
-                    name: `➡`,
-                  },
-                  type: 2,
-                },
-              ],
-            },
-          ],
-        });
-      });
+          footer: {
+            text: "Starte noch heute und kämpfe dich an die Spitze! Registrierung via /register",
+          },
+          thumbnail: process.env.EVENT_IMG ? { url: process.env.EVENT_IMG } : undefined,
+        },
+      ],
+      components: users.length > PAGE_SIZE ? [pageButton(1)] : [],
+    });
   },
 };
