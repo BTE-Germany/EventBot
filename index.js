@@ -35,7 +35,8 @@ for (const { data: event } of loadModules("event")) {
   else client.on(event.name, listener);
 }
 
-client.once("ready", async () => {
+// "ready" on older discord.js versions, "clientReady" on newer ones
+client.once(discord.Events.ClientReady, async () => {
   console.log(new Date().toLocaleString(), "Ready!");
 
   // Columns added after the initial schema; the start script only runs `prisma generate`
@@ -78,7 +79,8 @@ client.once("ready", async () => {
     setInterval(run, data.time);
   }
 
-  await api.start();
+  // A failing API (e.g. port in use) must not take the bot down with it
+  await api.start().catch((err) => console.error("Fehler beim Starten der API:", err));
 });
 
 async function replyWithError(interaction, content) {
