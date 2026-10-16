@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { isAdmin, denyAdmin } = require("../utils/permissions.js");
+const { TYPES, logActivity } = require("../utils/activity.js");
 
 module.exports = {
   command: {
@@ -47,6 +48,11 @@ module.exports = {
       prisma.user.updateMany({ data: { points: 0 } }),
     ]);
 
+    await logActivity(prisma, {
+      type: TYPES.DATABASE_CLEARED,
+      actor: interaction.user.username,
+      details: `Alle Builds gelöscht, alle Punkte auf 0 gesetzt · Grund: ${reason}`,
+    });
     console.log(
       new Date().toLocaleString(),
       `${interaction.user.username} (${interaction.user.id}) hat die BUILD-Tabelle geleert. Grund: ${reason}`

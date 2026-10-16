@@ -1,3 +1,5 @@
+const { TYPES, logActivity } = require("../utils/activity.js");
+
 module.exports = {
   command: {
     name: "register",
@@ -50,6 +52,11 @@ module.exports = {
     });
 
     await interaction.reply({ content: "Du wurdest erfolgreich registriert.", ephemeral: true });
+    await logActivity(prisma, {
+      type: TYPES.REGISTERED,
+      userId: interaction.user.id,
+      actor: minecraftName,
+    });
     console.log(
       new Date().toLocaleString(),
       `${interaction.user.tag} (${interaction.user.id}) registriert als ${minecraftName}`

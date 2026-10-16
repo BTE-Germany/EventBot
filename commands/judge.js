@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { isJudge, denyJudge } = require("../utils/permissions.js");
 const { refreshBuildingPanel } = require("../utils/buildingPanel.js");
+const { TYPES, logActivity } = require("../utils/activity.js");
 const { respondWithBuilds } = require("../utils/autocomplete.js");
 const {
   MAX_AUFWAND,
@@ -9,6 +10,7 @@ const {
   buildTotal,
   scoreChoices,
   categoryName,
+  formatScore,
 } = require("../utils/points.js");
 
 function judgePanelLink(build) {
@@ -175,10 +177,19 @@ module.exports = {
       return fail("Dieses Build wurde gerade von jemand anderem bewertet. Bitte versuche es erneut.");
     }
 
-    if (!isFirstJudge) {
-      await recalculateUserPoints(prisma, build.builder_id);
-    }
+    const pointChange = isFirstJudge ? null : await recalculateUserPoints(prisma, build.builder_id);
     const { build: updated } = await refreshBuildingPanel(client, prisma, buildId);
+
+    await logActivity(prisma, {
+      type: TYPES.JUDGED,
+      buildId,
+      userId: build.builder_id,
+      actor: interaction.user.username,
+      points: pointChange ? pointChange.delta : null,
+      details: isFirstJudge
+        ? `1. Bewertung (G ${formatScore(updated.base_points)} · A ${formatScore(aufwand)} · T ${formatScore(details)})`
+        : `Bewertung abgeschlossen (G ${formatScore(updated.base_points)} · A ${formatScore(updated.B)} · T ${formatScore(updated.A)})`,
+    });
 
     let content;
     if (isFirstJudge) {

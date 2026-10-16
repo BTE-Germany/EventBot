@@ -45,6 +45,16 @@ client.once(discord.Events.ClientReady, async () => {
     `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "reference_link" TEXT;`,
     `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "judge_details" JSONB;`,
     `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "extra_info" TEXT;`,
+    `CREATE TABLE IF NOT EXISTS "Activity" (
+      "id" SERIAL PRIMARY KEY,
+      "created_at" TIMESTAMPTZ(1) NOT NULL DEFAULT now(),
+      "type" TEXT NOT NULL,
+      "build_id" INTEGER,
+      "user_id" BIGINT,
+      "actor" TEXT,
+      "points" DOUBLE PRECISION,
+      "details" TEXT
+    );`,
   ]) {
     await prisma.$executeRawUnsafe(statement).catch((err) =>
       console.error("Fehler bei der Datenbank-Migration:", err.message)
@@ -130,5 +140,8 @@ client.on("interactionCreate", async (interaction) => {
     await replyWithError(interaction, errorMessage);
   }
 });
+
+// Log instead of crashing the whole bot
+process.on("unhandledRejection", (err) => console.error("Unbehandelter Fehler:", err));
 
 client.login(process.env.BOT_TOKEN);

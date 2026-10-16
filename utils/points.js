@@ -1,7 +1,10 @@
 // A builder's points are the sum of their fully judged builds. Recalculating
 // instead of adding/subtracting deltas keeps points correct after
 // judging, corrections and deletions, even if one of those failed halfway.
+// Returns the change, so callers can log points added or deducted.
 async function recalculateUserPoints(prisma, builderId) {
+  const user = await prisma.user.findUnique({ where: { id: BigInt(builderId) } });
+  const before = user?.points ?? 0;
   const builds = await prisma.build.findMany({
     where: { builder_id: BigInt(builderId) },
   });
@@ -13,7 +16,7 @@ async function recalculateUserPoints(prisma, builderId) {
     where: { id: BigInt(builderId) },
     data: { points },
   });
-  return points;
+  return { before, after: points, delta: Number((points - before).toFixed(2)) };
 }
 
 function buildTotal(build) {
@@ -31,6 +34,11 @@ function scoreChoices(max) {
   }));
 }
 
+// German number format for activity texts, e.g. 4,5
+function formatScore(n) {
+  return Number(n).toLocaleString("de-DE", { maximumFractionDigits: 2 });
+}
+
 function categoryName(basePoints) {
   return basePoints === 2 ? "Gebäude" : "Infrastruktur";
 }
@@ -42,4 +50,5 @@ module.exports = {
   buildTotal,
   scoreChoices,
   categoryName,
+  formatScore,
 };

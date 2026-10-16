@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { isJudge, denyJudge } = require("../utils/permissions.js");
 const { refreshBuildingPanel } = require("../utils/buildingPanel.js");
+const { TYPES, logActivity } = require("../utils/activity.js");
 const { respondWithBuilds } = require("../utils/autocomplete.js");
 const {
   MAX_AUFWAND,
@@ -8,6 +9,7 @@ const {
   recalculateUserPoints,
   buildTotal,
   scoreChoices,
+  formatScore,
 } = require("../utils/points.js");
 
 module.exports = {
@@ -126,13 +128,20 @@ module.exports = {
       },
     });
 
-    if (build.judges.length >= 2) {
-      await recalculateUserPoints(prisma, build.builder_id);
-    }
+    const pointChange =
+      build.judges.length >= 2 ? await recalculateUserPoints(prisma, build.builder_id) : null;
     const { build: updated } = await refreshBuildingPanel(client, prisma, buildId);
 
     const newTotal = buildTotal(updated);
     const pointDiff = Number((newTotal - oldTotal).toFixed(2));
+    await logActivity(prisma, {
+      type: TYPES.CORRECTED,
+      buildId,
+      userId: build.builder_id,
+      actor: interaction.user.username,
+      points: pointChange ? pointChange.delta : null,
+      details: `${formatScore(oldTotal)} → ${formatScore(newTotal)} Pkt${pointChange ? "" : " (Zwischenbewertung)"} · Grund: ${reason}`,
+    });
     console.log(
       new Date().toLocaleString(),
       `[KORREKTUR] Build #${buildId} korrigiert von ${interaction.user.username}: ${oldTotal} -> ${newTotal} Pkt. Grund: ${reason}`

@@ -2,6 +2,7 @@ require("dotenv").config();
 const { isJudge, denyJudge } = require("../utils/permissions.js");
 const { respondWithBuilds } = require("../utils/autocomplete.js");
 const { recalculateUserPoints } = require("../utils/points.js");
+const { TYPES, logActivity } = require("../utils/activity.js");
 const { deleteUploadedImage } = require("../utils/storage.js");
 
 async function deleteMessage(client, channelId, messageId) {
@@ -56,7 +57,15 @@ module.exports = {
 
     await prisma.build.delete({ where: { id: buildId } });
     // Removes the build's points if it was already fully judged
-    await recalculateUserPoints(prisma, build.builder_id);
+    const pointChange = await recalculateUserPoints(prisma, build.builder_id);
+    await logActivity(prisma, {
+      type: TYPES.DELETED,
+      buildId,
+      userId: build.builder_id,
+      actor: interaction.user.username,
+      points: pointChange.delta || null,
+      details: `Grund: ${reason}`,
+    });
 
     await deleteMessage(client, process.env.SUBMISSION_CHANNEL, build.message);
     await deleteMessage(client, process.env.JUDGE_CHANNEL, build.judge_msg);

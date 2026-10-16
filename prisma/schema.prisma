@@ -31,3 +31,15 @@ model Build {
   images            String[]
   created_timestamp DateTime @default(now()) @db.Timestamptz(1)
 }
+
+// Activity log shown on the status page: registrations, submissions, judging, point changes
+model Activity {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(1)
+  type       String
+  build_id   Int?
+  user_id    BigInt?  @db.BigInt
+  actor      String?
+  points     Float?
+  details    String?
+}

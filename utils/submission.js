@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { uploadAttachment } = require("./storage.js");
+const { TYPES, logActivity } = require("./activity.js");
 const {
   generateBuildingEmbeds,
   submissionComponents,
@@ -65,6 +66,14 @@ async function createSubmission({
       message: submissionMsg ? BigInt(submissionMsg.id) : null,
       judge_msg: judgeMsg ? BigInt(judgeMsg.id) : null,
     },
+  });
+
+  await logActivity(prisma, {
+    type: TYPES.BUILD_CREATED,
+    buildId: build.id,
+    userId: builderId,
+    actor: dbUser.minecraft_id,
+    details: `Referenz: ${referenceType}`,
   });
 
   console.log(
