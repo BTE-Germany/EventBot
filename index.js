@@ -45,6 +45,11 @@ client.once(discord.Events.ClientReady, async () => {
     `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "reference_link" TEXT;`,
     `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "judge_details" JSONB;`,
     `ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "extra_info" TEXT;`,
+    // Omitted list columns are stored as NULL, which breaks `judges = '{}'` and cardinality() checks
+    `ALTER TABLE "Build" ALTER COLUMN "judges" SET DEFAULT '{}';`,
+    `ALTER TABLE "Build" ALTER COLUMN "images" SET DEFAULT '{}';`,
+    `UPDATE "Build" SET "judges" = '{}' WHERE "judges" IS NULL;`,
+    `UPDATE "Build" SET "images" = '{}' WHERE "images" IS NULL;`,
     `CREATE TABLE IF NOT EXISTS "Activity" (
       "id" SERIAL PRIMARY KEY,
       "created_at" TIMESTAMPTZ(1) NOT NULL DEFAULT now(),

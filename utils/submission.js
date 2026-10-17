@@ -37,6 +37,7 @@ async function createSubmission({
       reference_type: referenceType,
       reference_link: referenceLink,
       images,
+      judges: [],
     },
   });
 
